@@ -1,6 +1,6 @@
 ---
-name: 2025 chungnamthon 5 team's issue template
-about: 2025 충남톤 5조 이슈 템플릿
+name: issue template
+about: 2025 Chungnamthon 5 team's issue template
 title: ''
 labels: ''
 assignees: ''
