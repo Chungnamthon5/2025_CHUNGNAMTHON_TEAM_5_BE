@@ -18,6 +18,17 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Gradle caching
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+
       - name: create application.yml file
         run: |
           mkdir ./src/main/resources
