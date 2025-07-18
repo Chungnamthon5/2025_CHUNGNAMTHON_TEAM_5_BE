@@ -1,4 +1,4 @@
-package com.chungnamthon.cheonon.security;
+package com.chungnamthon.cheonon.global.security;
 
 import com.chungnamthon.cheonon.Auth.Dto.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
