@@ -26,7 +26,7 @@ public class Meeting extends BaseEntity {
     private Location location;
 
     @Column(name = "max_member")
-    private int maxMember;
+    private Integer maxMember;
 
     @Column(name = "image_url")
     private String imageUrl;
