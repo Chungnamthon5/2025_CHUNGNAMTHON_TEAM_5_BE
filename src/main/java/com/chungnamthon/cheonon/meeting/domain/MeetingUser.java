@@ -1,6 +1,7 @@
 package com.chungnamthon.cheonon.meeting.domain;
 
 import com.chungnamthon.cheonon.meeting.domain.value.Role;
+import com.chungnamthon.cheonon.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Builder;
 import lombok.Getter;
@@ -19,11 +20,9 @@ public class MeetingUser {
     @Column(name = "id", nullable = false)
     private Long id;
 
-/*
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-*/
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "meeting_id")
@@ -40,8 +39,8 @@ public class MeetingUser {
     }
 
     @Builder
-    public MeetingUser(/*User user,*/ Meeting meeting, Role role) {
-//        this.user = user;
+    public MeetingUser(User user, Meeting meeting, Role role) {
+        this.user = user;
         this.meeting = meeting;
         this.role = role;
     }
