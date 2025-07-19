@@ -6,11 +6,13 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
-@Getter
 @Entity
+@Builder
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Meeting extends BaseEntity {
 
     @Column(name = "title")
@@ -30,18 +32,5 @@ public class Meeting extends BaseEntity {
     private String imageUrl;
 
     @Column(name = "total_member_count")
-    private int totalMemberCount;
-
-    protected Meeting() {
-    }
-
-    @Builder
-    public Meeting(String title, String description, Location location, int maxMember, String imageUrl, int totalMemberCount) {
-        this.title = title;
-        this.description = description;
-        this.location = location;
-        this.maxMember = maxMember;
-        this.imageUrl = imageUrl;
-        this.totalMemberCount = totalMemberCount;
-    }
+    private Integer totalMemberCount;
 }
