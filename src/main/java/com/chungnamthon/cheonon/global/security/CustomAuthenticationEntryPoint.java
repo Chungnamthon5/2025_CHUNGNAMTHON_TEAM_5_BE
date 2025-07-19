@@ -1,6 +1,6 @@
 package com.chungnamthon.cheonon.global.security;
 
-import com.chungnamthon.cheonon.Auth.Dto.ApiResponse;
+import com.chungnamthon.cheonon.auth.dto.response.ApiResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
