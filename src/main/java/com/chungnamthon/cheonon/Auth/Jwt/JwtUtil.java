@@ -3,7 +3,6 @@ package com.chungnamthon.cheonon.Auth.Jwt;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -11,6 +10,8 @@ import java.util.Base64;
 import java.util.Date;
 
 import jakarta.servlet.http.HttpServletRequest;
+
+import javax.crypto.SecretKey;
 
 @Component
 public class JwtUtil {
@@ -24,92 +25,50 @@ public class JwtUtil {
     @Value("${jwt.refresh-expiration}")
     private long refreshExpiration;
 
-    // Base64 인코딩된 키 → Key 객체로 변환
-    private Key getSigningKey() {
+    private SecretKey getSigningKey() {
         byte[] keyBytes = Base64.getDecoder().decode(secretKeyString);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // Access Token 생성
     public String createAccessToken(Long userId) {
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + accessExpiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .subject(String.valueOf(userId))
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + accessExpiration))
+                .signWith(getSigningKey())
                 .compact();
     }
 
-    // Refresh Token 생성
     public String createRefreshToken(Long userId) {
         return Jwts.builder()
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(new Date())
-                .setExpiration(new Date(System.currentTimeMillis() + refreshExpiration))
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .subject(String.valueOf(userId))
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
+                .signWith(getSigningKey())
                 .compact();
     }
 
-    // 리프레시 토큰의 만료일을 LocalDateTime으로 반환 (DB 저장용)
-    // Access Token + 만료일 리턴
-    public TokenWithExpiry createAccessTokenWithExpiry(Long userId) {
-        long nowMillis = System.currentTimeMillis();
-        Date expiryDate = new Date(nowMillis + accessExpiration);
-
-        String token = Jwts.builder()
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(new Date(nowMillis))
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
-
-        return new TokenWithExpiry(token, expiryDate.toInstant()
-                .atZone(java.time.ZoneId.systemDefault())
-                .toLocalDateTime());
-    }
-
-    // Refresh Token + 만료일 리턴
-    public TokenWithExpiry createRefreshTokenWithExpiry(Long userId) {
-        long nowMillis = System.currentTimeMillis();
-        Date expiryDate = new Date(nowMillis + refreshExpiration);
-
-        String token = Jwts.builder()
-                .setSubject(String.valueOf(userId))
-                .setIssuedAt(new Date(nowMillis))
-                .setExpiration(expiryDate)
-                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
-                .compact();
-
-        return new TokenWithExpiry(token, expiryDate.toInstant()
-                .atZone(java.time.ZoneId.systemDefault())
-                .toLocalDateTime());
-    }
-
-    // 토큰에서 사용자 ID 추출
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        Jws<Claims> jwt = Jwts.parser()  // ✅ parserBuilder() → parser()
+                .verifyWith((SecretKey) getSigningKey())     // ✅ verifyWith로 서명 검증 설정
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token);       // ✅ parseClaimsJws → parseSignedClaims
 
-        return Long.parseLong(claims.getSubject());
+        return Long.parseLong(jwt.getPayload().getSubject());  // ✅ getBody() → getPayload()
     }
 
-    // 토큰 유효성 검증
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
+            Jwts.parser()
+                    .verifyWith((SecretKey) getSigningKey())
                     .build()
-                    .parseClaimsJws(token);
+                    .parseSignedClaims(token);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
     }
 
-    // HTTP 요청에서 토큰 추출
     public String resolveToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
         return (bearer != null && bearer.startsWith("Bearer ")) ? bearer.substring(7) : null;

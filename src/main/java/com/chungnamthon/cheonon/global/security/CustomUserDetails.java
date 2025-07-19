@@ -1,4 +1,4 @@
-package com.chungnamthon.cheonon.security;
+package com.chungnamthon.cheonon.global.security;
 
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
