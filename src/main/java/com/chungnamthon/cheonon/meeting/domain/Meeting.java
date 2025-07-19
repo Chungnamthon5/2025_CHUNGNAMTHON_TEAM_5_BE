@@ -33,4 +33,24 @@ public class Meeting extends BaseEntity {
 
     @Column(name = "total_member_count")
     private Integer totalMemberCount;
+
+    public void updateTitle(String title) {
+        this.title = title;
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+    }
+
+    public void updateLocation(Location location) {
+        this.location = location;
+    }
+
+    public void updateMaxMember(int maxMember) {
+        this.maxMember = maxMember;
+    }
+
+    public void updateImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
+    }
 }
