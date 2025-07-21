@@ -12,11 +12,13 @@ import com.chungnamthon.cheonon.global.exception.error.AuthenticationError;
 import com.chungnamthon.cheonon.user.domain.User;
 import com.chungnamthon.cheonon.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.util.LinkedMultiValueMap;
@@ -33,9 +35,11 @@ public class KakaoOauthService {
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
 
-    @Value("${kakao.client-id}")
+    @Getter
+    @Value("${kakao.rest-api-key}")
     private String clientId;
 
+    @Getter
     @Value("${kakao.redirect-uri}")
     private String redirectUri;
 
@@ -74,8 +78,17 @@ public class KakaoOauthService {
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
         try {
+            // 1차: 원본 JSON 문자열 로그 찍기
+            ResponseEntity<String> rawResponse = restTemplate.exchange(userInfoUri, HttpMethod.GET, request, String.class);
+            System.out.println("💬 Kakao User Raw Response: " + rawResponse.getBody());
+
+            // 2차: DTO로 파싱 시도
             ResponseEntity<KakaoUserResponse> response = restTemplate.exchange(userInfoUri, HttpMethod.GET, request, KakaoUserResponse.class);
             return response.getBody();
+        } catch (HttpStatusCodeException e) {
+            // 오류 응답 본문 출력 (예: 동의하지 않은 경우 등)
+            System.out.println("❗ Kakao API Error Response: " + e.getResponseBodyAsString());
+            throw new BusinessException(AuthenticationError.KAKAO_USER_FETCH_FAIL);
         } catch (RestClientException e) {
             throw new BusinessException(AuthenticationError.KAKAO_USER_FETCH_FAIL);
         }
@@ -86,6 +99,10 @@ public class KakaoOauthService {
         String kakaoAccessToken = getAccessToken(code);
         KakaoUserResponse kakaoUser = getKakaoUser(kakaoAccessToken);
 
+        if (kakaoUser.getKakao_account() == null) {
+            throw new BusinessException(AuthenticationError.KAKAO_ACCOUNT_NOT_PROVIDED);
+        }
+
         String email = kakaoUser.getKakao_account().getEmail();
         if (email == null || email.isBlank()) {
             throw new BusinessException(AuthenticationError.KAKAO_EMAIL_NOT_PROVIDED);
@@ -94,8 +111,8 @@ public class KakaoOauthService {
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> userRepository.save(User.builder()
                         .email(email)
-                        .nickname(kakaoUser.getProperties().getNickname())
-                        .image(kakaoUser.getProperties().getProfile_image())
+                        .nickname(kakaoUser.getKakao_account().getProfile().getNickname()) // ✅ 고친 부분
+                        .image(kakaoUser.getKakao_account().getProfile().getThumbnail_image_url()) // ✅ 같이 유지
                         .role("USER")
                         .build()));
 
@@ -114,4 +131,5 @@ public class KakaoOauthService {
 
         return new TokenResponse(jwtAccessToken, refreshTokenWithExpiry.getToken());
     }
+
 }
