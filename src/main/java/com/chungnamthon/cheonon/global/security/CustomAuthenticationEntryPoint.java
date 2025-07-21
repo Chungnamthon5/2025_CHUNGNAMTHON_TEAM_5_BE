@@ -1,6 +1,6 @@
 package com.chungnamthon.cheonon.global.security;
 
-import com.chungnamthon.cheonon.auth.dto.response.ApiResponse;
+import com.chungnamthon.cheonon.global.payload.ResponseDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,8 +17,10 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
                          HttpServletResponse response,
                          AuthenticationException authException) throws IOException {
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.setContentType("application/json");
-        response.getWriter().write(new ObjectMapper()
-                .writeValueAsString(ApiResponse.error("인증이 필요합니다.")));
+        response.setContentType("application/json;charset=UTF-8");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String errorResponse = objectMapper.writeValueAsString(ResponseDto.of("인증이 필요합니다."));
+        response.getWriter().write(errorResponse);
     }
 }

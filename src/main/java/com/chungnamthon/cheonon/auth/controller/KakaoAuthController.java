@@ -1,6 +1,5 @@
 package com.chungnamthon.cheonon.auth.controller;
 
-import com.chungnamthon.cheonon.auth.dto.response.ApiResponse;
 import com.chungnamthon.cheonon.auth.dto.response.TokenResponse;
 import com.chungnamthon.cheonon.auth.service.KakaoOauthService;
 import com.chungnamthon.cheonon.global.payload.ResponseDto;
@@ -37,8 +36,8 @@ public class KakaoAuthController {
 
     // ✅ 2단계: 카카오에서 인가코드 받아오는 콜백 엔드포인트
     @GetMapping("/callback")
-    public ResponseDto<ApiResponse<TokenResponse>> kakaoLogin(@RequestParam("code") String code) {
+    public ResponseDto<TokenResponse> kakaoLogin(@RequestParam("code") String code) {
         TokenResponse tokenResponse = kakaoOauthService.kakaoLogin(code);
-        return ResponseDto.of(ApiResponse.success("카카오 로그인 성공", tokenResponse));
+        return ResponseDto.of(tokenResponse, "카카오 로그인 성공");
     }
 }
