@@ -47,7 +47,8 @@ public class SecurityConfig {
                                 "/api/oauth/kakao/callback",
                                 "/api/auth/**",
                                 "/api/test-token/**",
-                                "/api/admin/merchants/fetch"
+                                "/api/admin/merchants/fetch",
+                                "/api/auth/kakao/callback"
                         ).permitAll()
                         .anyRequest().authenticated()
                 )

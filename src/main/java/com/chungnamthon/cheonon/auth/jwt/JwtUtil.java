@@ -5,6 +5,9 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Date;
 
@@ -38,13 +41,22 @@ public class JwtUtil {
                 .compact();
     }
 
-    public String createRefreshToken(Long userId) {
-        return Jwts.builder()
+    public TokenWithExpiry createRefreshTokenWithExpiry(Long userId) {
+        long nowMillis = System.currentTimeMillis();
+        long expiryMillis = nowMillis + refreshExpiration;
+
+        String token = Jwts.builder()
                 .subject(String.valueOf(userId))
-                .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + refreshExpiration))
+                .issuedAt(new Date(nowMillis))
+                .expiration(new Date(expiryMillis))
                 .signWith(getSigningKey())
                 .compact();
+
+        LocalDateTime expiry = Instant.ofEpochMilli(expiryMillis)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+
+        return new TokenWithExpiry(token, expiry);
     }
 
     public Long getUserIdFromToken(String token) {
