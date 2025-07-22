@@ -29,7 +29,7 @@ public class MeetingController implements MeetingControllerSwagger {
     @PatchMapping("/{meetingId}")
     public ResponseDto<UpdateMeetingResponse> updateMeeting(
             @RequestHeader(value = "Authorization", required = false) String token, // Todo JWT 이슈 해결 완료 후 required 삭제
-            @PathVariable Long meetingId,
+            @PathVariable("meetingId") Long meetingId,
             @RequestBody @Valid UpdateMeetingRequest updateMeetingRequest
     ) {
         UpdateMeetingResponse updateMeetingResponse = meetingService.updateMeetingInformation(token, meetingId, updateMeetingRequest);

@@ -1,6 +1,7 @@
 package com.chungnamthon.cheonon.meeting.dto.request;
 
 import com.chungnamthon.cheonon.meeting.domain.value.Location;
+import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 
@@ -17,10 +18,16 @@ public record CreateMeetingRequest(
         @NotNull(message = "위치는 필수입니다.")
         Location location,
 
-        @NotNull(message = "인원 설정은 필수입니다.")
-        @Min(value = 2, message = "최소 2명 이상이어야 합니다.")
-        @Max(value = 10, message = "최대 10명까지 가능합니다.")
-        Integer maxMember,
+        // ex. https://open.kakao.com/o/gq9lWjIh
+        @Pattern(
+                regexp = "^https://open\\.kakao\\.com/o/[A-Za-z0-9]+$",
+                message = "올바른 카카오 오픈채팅방 링크 형식이 아닙니다."
+        )
+        @NotBlank(message = "오픈채팅방 링크는 필수입니다.")
+        String openChatUrl,
+
+        @NotNull(message = "스케줄 타입은 필수입니다.")
+        Schedule schedule,
 
         @Schema(nullable = true)
         String imageUrl
