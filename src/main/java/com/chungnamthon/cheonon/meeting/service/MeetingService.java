@@ -8,11 +8,15 @@ import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.response.CreateMeetingResponse;
+import com.chungnamthon.cheonon.meeting.dto.response.MeetingListResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.UpdateMeetingResponse;
 import com.chungnamthon.cheonon.meeting.repository.MeetingRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -52,6 +56,30 @@ public class MeetingService {
         meetingRepository.save(meeting);
 
         return new CreateMeetingResponse(meeting.getId());
+    }
+
+    /**
+     * 모임 리스트 조회 메서드
+     * @return meetingListResponse (전체 리스트)
+     */
+    public List<MeetingListResponse> getMeetingList() {
+        List<Meeting> meetingList = meetingRepository.findAll();
+
+        List<MeetingListResponse> meetingListResponses = new ArrayList<>();
+        for (Meeting meeting : meetingList) {
+            Long meetingId = meeting.getId();
+            String title = meeting.getTitle();
+            String description = meeting.getDescription();
+            Location location = meeting.getLocation();
+            Schedule schedule = meeting.getSchedule();
+            String imageUrl = meeting.getImageUrl();
+
+            MeetingListResponse meetingListResponse
+                    = new MeetingListResponse(meetingId, title, description, location, schedule, imageUrl);
+            meetingListResponses.add(meetingListResponse);
+        }
+
+        return meetingListResponses;
     }
 
     /**
