@@ -23,7 +23,7 @@ public class MeetingController implements MeetingControllerSwagger {
 
     @PostMapping
     public ResponseDto<CreateMeetingResponse> createMeeting(
-            @RequestHeader(value = "Authorization") String token,
+            @RequestHeader("Authorization") String token,
             @RequestBody @Valid CreateMeetingRequest createMeetingRequest
     ) {
         CreateMeetingResponse createMeetingResponse = meetingService.createMeeting(token, createMeetingRequest);
@@ -46,11 +46,20 @@ public class MeetingController implements MeetingControllerSwagger {
 
     @PatchMapping("/{meetingId}")
     public ResponseDto<UpdateMeetingResponse> updateMeeting(
-            @RequestHeader(value = "Authorization") String token,
+            @RequestHeader("Authorization") String token,
             @PathVariable("meetingId") Long meetingId,
             @RequestBody @Valid UpdateMeetingRequest updateMeetingRequest
     ) {
         UpdateMeetingResponse updateMeetingResponse = meetingService.updateMeetingInformation(token, meetingId, updateMeetingRequest);
         return ResponseDto.of(updateMeetingResponse, "Successfully updated a meeting information.");
+    }
+
+    @DeleteMapping("/{meetingId}")
+    public ResponseDto<Long> deleteMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId
+    ) {
+        meetingService.deleteMeeting(token, meetingId);
+        return ResponseDto.of(meetingId, "Successfully deleted the meeting.");
     }
 }
