@@ -4,6 +4,7 @@ import com.chungnamthon.cheonon.global.payload.ResponseDto;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.response.CreateMeetingResponse;
+import com.chungnamthon.cheonon.meeting.dto.response.MeetingDetailResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.MeetingListResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.UpdateMeetingResponse;
 import com.chungnamthon.cheonon.meeting.service.MeetingService;
@@ -33,6 +34,14 @@ public class MeetingController implements MeetingControllerSwagger {
     public ResponseDto<List<MeetingListResponse>> meetingList() {
         List<MeetingListResponse> meetingListResponse = meetingService.getMeetingList();
         return ResponseDto.of(meetingListResponse, "Successfully retrieved meeting list.");
+    }
+
+    @GetMapping("/{meetingId}")
+    public ResponseDto<MeetingDetailResponse> meetingDetail(
+            @PathVariable("meetingId") Long meetingId
+    ) {
+        MeetingDetailResponse meetingDetailResponse = meetingService.getMeetingDetailInformation(meetingId);
+        return ResponseDto.of(meetingDetailResponse, "Successfully retrieved meeting detail.");
     }
 
     @PatchMapping("/{meetingId}")

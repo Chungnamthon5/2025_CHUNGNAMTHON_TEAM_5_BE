@@ -4,6 +4,7 @@ import com.chungnamthon.cheonon.global.payload.ResponseDto;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.response.CreateMeetingResponse;
+import com.chungnamthon.cheonon.meeting.dto.response.MeetingDetailResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.MeetingListResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.UpdateMeetingResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -150,6 +151,68 @@ public interface MeetingControllerSwagger {
             }
     )
     ResponseDto<List<MeetingListResponse>> meetingList();
+
+    @GetMapping("/{meetingId}")
+    @Operation(
+            summary = "모임 상세 정보 조회",
+            description = "모임 ID를 통해 상세 정보를 조회합니다. 인증 없이 접근할 수 있습니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "모임 상세 정보 조회 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "모임 상세 정보 응답 예시",
+                                            value = """
+                                        {
+                                            "timeStamp": "2025-07-23T10:30:00",
+                                            "message": "Successfully retrieved meeting detail.",
+                                            "data": {
+                                                "meetingId": 1,
+                                                "title": "천안역 커피 미팅",
+                                                "description": "같이 커피 마시면서 네트워킹해요!",
+                                                "location": "MOKCHEON",
+                                                "schedule": "WEEKEND",
+                                                "imageUrl": "https://example.com/meeting.jpg",
+                                                "openChatUrl": "https://open.kakao.com/o/abc123"
+                                            }
+                                        }
+                                        """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "해당 ID의 모임이 존재하지 않는 경우",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "모임 없음 에러",
+                                            value = """
+                                        {
+                                            "httpStatus": "NOT_FOUND",
+                                            "message": "존재하지 않는 모임입니다.",
+                                            "timeStamp": "2025-07-23T10:32:00"
+                                        }
+                                        """
+                                    )
+                            )
+                    )
+            }
+    )
+    @Parameter(
+            name = "meetingId",
+            description = "조회할 모임의 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "1"
+    )
+    ResponseDto<MeetingDetailResponse> meetingDetail(@PathVariable("meetingId") Long meetingId);
+
 
     @PatchMapping("/{meetingId}")
     @Operation(
