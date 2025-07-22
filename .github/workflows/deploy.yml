@@ -1,40 +1,56 @@
 name: Java CI with Gradle
-
 on:
   push:
+    branches: [ "main" ]
+  pull_request:
     branches: [ "main" ]
     
 permissions:
   contents: read
+  actions: write
   
 jobs:
   build-docker-image:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
           
-      - name: Build with Gradle
-        uses: gradle/actions/setup-gradle@v4
+      - name: Cache Gradle packages
+        uses: actions/cache@v4
         with:
-          gradle-version: '8.13'
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}-v2
+          restore-keys: |
+            ${{ runner.os }}-gradle-v2
           
       - name: create application.yml file
         run: |
           mkdir -p ./src/main/resources
           touch ./src/main/resources/application.yml
           echo "${{ secrets.APPLICATION_YML }}" >> src/main/resources/application.yml
-          
+        
+      - name: Clean Gradle cache if corrupted
+        run: |
+          if [ -d "$HOME/.gradle/caches" ]; then
+            echo "Cleaning potentially corrupted Gradle cache..."
+            rm -rf $HOME/.gradle/caches/modules-2/modules-2.lock
+            rm -rf $HOME/.gradle/caches/*/plugin-resolution/
+          fi
+        
       - name: Grant execute permission for gradlew
         run: chmod +x ./gradlew
-        shell: bash
         
       - name: Clean and build bootJar
-        run: ./gradlew clean bootJar
+        run: ./gradlew clean bootJar --no-daemon
         
       - name: docker image build
         run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/${{ secrets.APPLICATION_NAME }} .
@@ -51,6 +67,7 @@ jobs:
   run-docker-image-on-ec2:
     needs: build-docker-image
     runs-on: self-hosted
+    timeout-minutes: 10
     
     steps:
       - name: docker pull
