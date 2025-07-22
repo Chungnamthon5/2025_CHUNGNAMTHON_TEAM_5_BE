@@ -125,7 +125,7 @@ public class MeetingService {
 
         Long userId = jwtUtil.getUserIdFromToken(token);
         if (!meeting.getUser().getId().equals(userId)) {
-            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_DELETE);
+            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_UPDATE);
         }
 
         if (updateMeetingRequest.title() != null) {
@@ -163,5 +163,17 @@ public class MeetingService {
 
         return new UpdateMeetingResponse(meeting.getId());
     }
-}
 
+    @Transactional
+    public void deleteMeeting(String token, Long meetingId) {
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        if (!meeting.getUser().getId().equals(userId)) {
+            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_DELETE);
+        }
+
+        meetingRepository.deleteById(meetingId);
+    }
+}
