@@ -29,4 +29,10 @@ public class RefreshToken {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    public void update(String newToken, LocalDateTime createdAt, LocalDateTime expiredAt) {
+        this.token = newToken;
+        this.createdAt = createdAt;
+        this.expiredAt = expiredAt;
+    }
 }

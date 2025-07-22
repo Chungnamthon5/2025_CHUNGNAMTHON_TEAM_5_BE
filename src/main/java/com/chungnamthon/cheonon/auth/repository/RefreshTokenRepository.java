@@ -1,6 +1,7 @@
 package com.chungnamthon.cheonon.auth.repository;
 
 import com.chungnamthon.cheonon.auth.domain.RefreshToken;
+import com.chungnamthon.cheonon.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.math.BigInteger;
@@ -14,7 +15,9 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
     // ✅ 수정된 메서드들:
     List<RefreshToken> findByUser_Id(Long userId);
 
-    Optional<RefreshToken> findTopByUserIdOrderByExpiredAtDesc(BigInteger userId);
+    Optional<RefreshToken> findTopByUserIdOrderByExpiredAtDesc(Long userId);
 
-    void deleteAllByUser_Id(BigInteger userId);
+    void deleteAllByUser_Id(Long userId);
+
+    Optional<RefreshToken> findByUser(User user);
 }

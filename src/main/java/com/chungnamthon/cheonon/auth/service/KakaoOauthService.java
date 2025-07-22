@@ -121,13 +121,24 @@ public class KakaoOauthService {
         TokenWithExpiry refreshTokenWithExpiry = jwtUtil.createRefreshTokenWithExpiry(user.getId());
 
         // 리프레시 토큰 저장
-        RefreshToken refreshTokenEntity = RefreshToken.builder()
-                .token(refreshTokenWithExpiry.getToken())
-                .createdAt(LocalDateTime.now())
-                .expiredAt(refreshTokenWithExpiry.getExpiry())
-                .user(user)
-                .build();
-        refreshTokenRepository.save(refreshTokenEntity);
+        // 기존 리프레시 토큰 존재 여부 확인
+        refreshTokenRepository.findByUser(user)
+                .ifPresentOrElse(
+                        existingToken -> existingToken.update(
+                                refreshTokenWithExpiry.getToken(),
+                                LocalDateTime.now(),
+                                refreshTokenWithExpiry.getExpiry()
+                        ),
+                        () -> {
+                            RefreshToken newToken = RefreshToken.builder()
+                                    .token(refreshTokenWithExpiry.getToken())
+                                    .createdAt(LocalDateTime.now())
+                                    .expiredAt(refreshTokenWithExpiry.getExpiry())
+                                    .user(user)
+                                    .build();
+                            refreshTokenRepository.save(newToken);
+                        }
+                );
 
         return new TokenResponse(jwtAccessToken, refreshTokenWithExpiry.getToken());
     }

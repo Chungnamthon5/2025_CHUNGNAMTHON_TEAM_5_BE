@@ -4,6 +4,7 @@ import com.chungnamthon.cheonon.global.payload.ResponseDto;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.response.CreateMeetingResponse;
+import com.chungnamthon.cheonon.meeting.dto.response.MeetingDetailResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.MeetingListResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.UpdateMeetingResponse;
 import com.chungnamthon.cheonon.meeting.service.MeetingService;
@@ -22,7 +23,7 @@ public class MeetingController implements MeetingControllerSwagger {
 
     @PostMapping
     public ResponseDto<CreateMeetingResponse> createMeeting(
-            @RequestHeader(value = "Authorization", required = false) String token, // Todo JWT 이슈 해결 완료 후 required 삭제
+            @RequestHeader(value = "Authorization") String token,
             @RequestBody @Valid CreateMeetingRequest createMeetingRequest
     ) {
         CreateMeetingResponse createMeetingResponse = meetingService.createMeeting(token, createMeetingRequest);
@@ -35,9 +36,17 @@ public class MeetingController implements MeetingControllerSwagger {
         return ResponseDto.of(meetingListResponse, "Successfully retrieved meeting list.");
     }
 
+    @GetMapping("/{meetingId}")
+    public ResponseDto<MeetingDetailResponse> meetingDetail(
+            @PathVariable("meetingId") Long meetingId
+    ) {
+        MeetingDetailResponse meetingDetailResponse = meetingService.getMeetingDetailInformation(meetingId);
+        return ResponseDto.of(meetingDetailResponse, "Successfully retrieved meeting detail.");
+    }
+
     @PatchMapping("/{meetingId}")
     public ResponseDto<UpdateMeetingResponse> updateMeeting(
-            @RequestHeader(value = "Authorization", required = false) String token, // Todo JWT 이슈 해결 완료 후 required 삭제
+            @RequestHeader(value = "Authorization") String token,
             @PathVariable("meetingId") Long meetingId,
             @RequestBody @Valid UpdateMeetingRequest updateMeetingRequest
     ) {

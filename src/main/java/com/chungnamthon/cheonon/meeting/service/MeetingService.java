@@ -1,6 +1,8 @@
 package com.chungnamthon.cheonon.meeting.service;
 
+import com.chungnamthon.cheonon.auth.jwt.JwtUtil;
 import com.chungnamthon.cheonon.global.exception.BusinessException;
+import com.chungnamthon.cheonon.global.exception.error.AuthenticationError;
 import com.chungnamthon.cheonon.global.exception.error.MeetingError;
 import com.chungnamthon.cheonon.meeting.domain.Meeting;
 import com.chungnamthon.cheonon.meeting.domain.value.Location;
@@ -8,9 +10,12 @@ import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.response.CreateMeetingResponse;
+import com.chungnamthon.cheonon.meeting.dto.response.MeetingDetailResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.MeetingListResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.UpdateMeetingResponse;
 import com.chungnamthon.cheonon.meeting.repository.MeetingRepository;
+import com.chungnamthon.cheonon.user.domain.User;
+import com.chungnamthon.cheonon.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +28,8 @@ import java.util.List;
 public class MeetingService {
 
     private final MeetingRepository meetingRepository;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     /**
      * 모임 생성 메서드
@@ -32,10 +39,9 @@ public class MeetingService {
      */
     @Transactional
     public CreateMeetingResponse createMeeting(String token, CreateMeetingRequest createMeetingRequest) {
-        // Todo JWT 이슈 해결 완료 후 userId 추출 로직 추가
-        /*Long userId = jwtUtil.getUserIdFromToken(token);
+        Long userId = jwtUtil.getUserIdFromToken(token);
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));*/
+                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
 
         String title = createMeetingRequest.title();
         String description = createMeetingRequest.description();
@@ -45,6 +51,7 @@ public class MeetingService {
         String imageUrl = createMeetingRequest.imageUrl();
 
         Meeting meeting = Meeting.builder()
+                .user(user)
                 .title(title)
                 .description(description)
                 .location(location)
@@ -83,6 +90,28 @@ public class MeetingService {
     }
 
     /**
+     * 모임 상세 정보 조회
+     * @param meetingId
+     * @return meetingDetailResponse (meetingId, title, description, location, schedule, imageUrl, openChatUrl)
+     */
+    public MeetingDetailResponse getMeetingDetailInformation(Long meetingId) {
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        String title = meeting.getTitle();
+        String description = meeting.getDescription();
+        Location location = meeting.getLocation();
+        Schedule schedule = meeting.getSchedule();
+        String imageUrl = meeting.getImageUrl();
+        String openChatUrl = meeting.getOpenChatUrl();
+
+        MeetingDetailResponse meetingDetailResponse
+                = new MeetingDetailResponse(meetingId, title, description, location, schedule, imageUrl, openChatUrl);
+
+        return meetingDetailResponse;
+    }
+
+    /**
      * 모임 정보 수정 메서드
      * @param token
      * @param meetingId
@@ -91,10 +120,13 @@ public class MeetingService {
      */
     @Transactional
     public UpdateMeetingResponse updateMeetingInformation(String token, Long meetingId, UpdateMeetingRequest updateMeetingRequest) {
-        // Todo JWT 이슈 해결 완료 후 userId 추출 로직 추가
-
         Meeting meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        if (!meeting.getUser().getId().equals(userId)) {
+            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_DELETE);
+        }
 
         if (updateMeetingRequest.title() != null) {
             if (updateMeetingRequest.title().isBlank()) {

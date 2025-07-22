@@ -3,10 +3,8 @@ package com.chungnamthon.cheonon.meeting.domain;
 import com.chungnamthon.cheonon.global.domain.BaseEntity;
 import com.chungnamthon.cheonon.meeting.domain.value.Location;
 import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
+import com.chungnamthon.cheonon.user.domain.User;
+import jakarta.persistence.*;
 import lombok.*;
 
 @Entity
@@ -15,6 +13,10 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Meeting extends BaseEntity {
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")
+    private User user;
 
     @Column(name = "title")
     private String title;
