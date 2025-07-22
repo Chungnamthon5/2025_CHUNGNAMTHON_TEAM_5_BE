@@ -22,7 +22,7 @@ public class MeetingController implements MeetingControllerSwagger {
 
     @PostMapping
     public ResponseDto<CreateMeetingResponse> createMeeting(
-            @RequestHeader(value = "Authorization", required = false) String token, // Todo JWT 이슈 해결 완료 후 required 삭제
+            @RequestHeader(value = "Authorization") String token,
             @RequestBody @Valid CreateMeetingRequest createMeetingRequest
     ) {
         CreateMeetingResponse createMeetingResponse = meetingService.createMeeting(token, createMeetingRequest);
@@ -37,7 +37,7 @@ public class MeetingController implements MeetingControllerSwagger {
 
     @PatchMapping("/{meetingId}")
     public ResponseDto<UpdateMeetingResponse> updateMeeting(
-            @RequestHeader(value = "Authorization", required = false) String token, // Todo JWT 이슈 해결 완료 후 required 삭제
+            @RequestHeader(value = "Authorization") String token,
             @PathVariable("meetingId") Long meetingId,
             @RequestBody @Valid UpdateMeetingRequest updateMeetingRequest
     ) {
