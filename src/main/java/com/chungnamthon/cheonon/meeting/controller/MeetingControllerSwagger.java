@@ -302,4 +302,87 @@ public interface MeetingControllerSwagger {
             @PathVariable("meetingId") Long meetingId,
             @RequestBody @Valid UpdateMeetingRequest updateMeetingRequest
     );
+
+    @DeleteMapping("/{meetingId}")
+    @Operation(
+            summary = "모임 삭제",
+            description = "모임을 삭제합니다. JWT 인증이 필요하며, 모임 생성자만 삭제할 수 있습니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "모임 삭제 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "모임 삭제 성공 응답",
+                                            value = """
+                                            {
+                                                "timeStamp": "2025-07-23T13:45:00",
+                                                "message": "The meeting was deleted successfully.",
+                                                "data": null
+                                            }
+                                            """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "삭제 권한 없음 - 본인이 생성한 모임이 아님",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "삭제 권한 없음 에러",
+                                            value = """
+                                            {
+                                                "httpStatus": "FORBIDDEN",
+                                                "message": "본인의 모임 게시글만 수정할 수 있습니다.",
+                                                "timeStamp": "2025-07-23T13:46:00"
+                                            }
+                                            """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "존재하지 않는 모임 ID",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "모임 없음 에러",
+                                            value = """
+                                            {
+                                                "httpStatus": "NOT_FOUND",
+                                                "message": "존재하지 않는 모임입니다.",
+                                                "timeStamp": "2025-07-23T13:47:00"
+                                            }
+                                            """
+                                    )
+                            )
+                    )
+            },
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @Parameter(
+            name = "Authorization",
+            description = "JWT 토큰 (Bearer 방식)",
+            required = true,
+            in = ParameterIn.HEADER,
+            schema = @Schema(type = "string", format = "jwt"),
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
+    @Parameter(
+            name = "meetingId",
+            description = "삭제할 모임의 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "1"
+    )
+    ResponseDto<Void> deleteMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId
+    );
 }
