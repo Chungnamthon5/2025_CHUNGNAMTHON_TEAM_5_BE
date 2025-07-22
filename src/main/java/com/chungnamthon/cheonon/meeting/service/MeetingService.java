@@ -8,6 +8,7 @@ import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.response.CreateMeetingResponse;
+import com.chungnamthon.cheonon.meeting.dto.response.MeetingDetailResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.MeetingListResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.UpdateMeetingResponse;
 import com.chungnamthon.cheonon.meeting.repository.MeetingRepository;
@@ -80,6 +81,28 @@ public class MeetingService {
         }
 
         return meetingListResponses;
+    }
+
+    /**
+     * 모임 상세 정보 조회
+     * @param meetingId
+     * @return meetingDetailResponse (meetingId, title, description, location, schedule, imageUrl, openChatUrl)
+     */
+    public MeetingDetailResponse getMeetingDetailInformation(Long meetingId) {
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        String title = meeting.getTitle();
+        String description = meeting.getDescription();
+        Location location = meeting.getLocation();
+        Schedule schedule = meeting.getSchedule();
+        String imageUrl = meeting.getImageUrl();
+        String openChatUrl = meeting.getOpenChatUrl();
+
+        MeetingDetailResponse meetingDetailResponse
+                = new MeetingDetailResponse(meetingId, title, description, location, schedule, imageUrl, openChatUrl);
+
+        return meetingDetailResponse;
     }
 
     /**
