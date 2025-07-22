@@ -381,7 +381,7 @@ public interface MeetingControllerSwagger {
             schema = @Schema(type = "integer", format = "int64"),
             example = "1"
     )
-    ResponseDto<Void> deleteMeeting(
+    ResponseDto<Long> deleteMeeting(
             @RequestHeader("Authorization") String token,
             @PathVariable("meetingId") Long meetingId
     );
