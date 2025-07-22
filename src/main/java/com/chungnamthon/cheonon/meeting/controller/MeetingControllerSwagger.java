@@ -4,6 +4,7 @@ import com.chungnamthon.cheonon.global.payload.ResponseDto;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.response.CreateMeetingResponse;
+import com.chungnamthon.cheonon.meeting.dto.response.MeetingListResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.UpdateMeetingResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,10 +18,9 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.web.ErrorResponse;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(
         name = "모임 API",
@@ -106,6 +106,50 @@ public interface MeetingControllerSwagger {
             @RequestHeader("Authorization") String token,
             @RequestBody @Valid CreateMeetingRequest createMeetingRequest
     );
+
+    @GetMapping
+    @Operation(
+            summary = "모임 리스트 조회",
+            description = "전체 모임 목록을 조회합니다. 인증 없이 접근할 수 있습니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "모임 리스트 조회 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "모임 리스트 조회 성공 응답 예시",
+                                            value = """
+                    {
+                        "timeStamp": "2025-07-22T22:45:00",
+                        "message": "Successfully retrieved meeting list.",
+                        "data": [
+                            {
+                                "meetingId": 1,
+                                "title": "천안역 커피 미팅",
+                                "description": "같이 커피 마시면서 네트워킹해요!",
+                                "location": "MOKCHEON",
+                                "schedule": "WEEKEND",
+                                "imageUrl": "https://example.com/image1.jpg"
+                            },
+                            {
+                                "meetingId": 2,
+                                "title": "테니스 치실 분",
+                                "description": "라켓 있으신 분 환영",
+                                "location": "MOKCHEON",
+                                "schedule": "WEEKDAY",
+                                "imageUrl": "https://example.com/image2.jpg"
+                            }
+                        ]
+                    }
+                    """
+                                    )
+                            )
+                    )
+            }
+    )
+    ResponseDto<List<MeetingListResponse>> meetingList();
 
     @PatchMapping("/{meetingId}")
     @Operation(
