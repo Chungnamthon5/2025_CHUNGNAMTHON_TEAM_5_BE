@@ -1,10 +1,8 @@
 package com.chungnamthon.cheonon.meeting.dto.request;
 
 import com.chungnamthon.cheonon.meeting.domain.value.Location;
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
+import jakarta.validation.constraints.*;
 
 public record UpdateMeetingRequest(
 
@@ -16,9 +14,13 @@ public record UpdateMeetingRequest(
 
         Location location,
 
-        @Min(value = 2, message = "최소 2명 이상이어야 합니다.")
-        @Max(value = 10, message = "최대 10명까지 가능합니다.")
-        Integer maxMember,
+        @Pattern(
+                regexp = "^https://open\\.kakao\\.com/o/[A-Za-z0-9]+$",
+                message = "올바른 카카오 오픈채팅방 링크 형식이 아닙니다."
+        )
+        String openChatUrl,
+
+        Schedule schedule,
 
         String imageUrl
 ) {

@@ -2,6 +2,7 @@ package com.chungnamthon.cheonon.meeting.domain;
 
 import com.chungnamthon.cheonon.global.domain.BaseEntity;
 import com.chungnamthon.cheonon.meeting.domain.value.Location;
+import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -25,14 +26,15 @@ public class Meeting extends BaseEntity {
     @Column(name = "location")
     private Location location;
 
-    @Column(name = "max_member")
-    private Integer maxMember;
+    @Column(name = "openchat_url")
+    private String openChatUrl;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "schedule")
+    private Schedule schedule;
 
     @Column(name = "image_url")
     private String imageUrl;
-
-    @Column(name = "total_member_count")
-    private Integer totalMemberCount;
 
     public void updateTitle(String title) {
         this.title = title;
@@ -46,8 +48,12 @@ public class Meeting extends BaseEntity {
         this.location = location;
     }
 
-    public void updateMaxMember(int maxMember) {
-        this.maxMember = maxMember;
+    public void updatedOpenChatUrl(String openChatUrl) {
+        this.openChatUrl = openChatUrl;
+    }
+
+    public void updatedScheduleType(Schedule schedule) {
+        this.schedule = schedule;
     }
 
     public void updateImageUrl(String imageUrl) {
