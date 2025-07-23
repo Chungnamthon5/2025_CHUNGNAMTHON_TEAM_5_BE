@@ -5,7 +5,9 @@ import com.chungnamthon.cheonon.global.exception.BusinessException;
 import com.chungnamthon.cheonon.global.exception.error.AuthenticationError;
 import com.chungnamthon.cheonon.global.exception.error.MeetingError;
 import com.chungnamthon.cheonon.meeting.domain.Meeting;
+import com.chungnamthon.cheonon.meeting.domain.MeetingUser;
 import com.chungnamthon.cheonon.meeting.domain.value.Location;
+import com.chungnamthon.cheonon.meeting.domain.value.Role;
 import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
@@ -14,6 +16,7 @@ import com.chungnamthon.cheonon.meeting.dto.response.MeetingDetailResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.MeetingListResponse;
 import com.chungnamthon.cheonon.meeting.dto.response.UpdateMeetingResponse;
 import com.chungnamthon.cheonon.meeting.repository.MeetingRepository;
+import com.chungnamthon.cheonon.meeting.repository.MeetingUserRepository;
 import com.chungnamthon.cheonon.user.domain.User;
 import com.chungnamthon.cheonon.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,7 @@ import java.util.List;
 public class MeetingService {
 
     private final MeetingRepository meetingRepository;
+    private final MeetingUserRepository meetingUserRepository;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
 
@@ -60,7 +64,14 @@ public class MeetingService {
                 .imageUrl(imageUrl)
                 .build();
 
+        MeetingUser meetingUser = MeetingUser.builder()
+                .meeting(meeting)
+                .user(user)
+                .role(Role.HOST)
+                .build();
+
         meetingRepository.save(meeting);
+        meetingUserRepository.save(meetingUser);
 
         return new CreateMeetingResponse(meeting.getId());
     }
