@@ -11,6 +11,7 @@ import java.math.BigInteger;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Setter
 public class LocalMerchant {
 
     @Id
