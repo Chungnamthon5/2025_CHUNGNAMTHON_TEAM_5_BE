@@ -5,6 +5,7 @@ import com.chungnamthon.cheonon.global.security.CustomAuthenticationEntryPoint;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -14,6 +15,8 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -38,8 +41,7 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                .formLogin(form -> form.disable())
-                .httpBasic(httpBasic -> httpBasic.disable())
+                .cors(cors -> {}) // cors 활성화만 하고 커스터마이징은 corsFilter()로 처리
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
@@ -48,8 +50,10 @@ public class SecurityConfig {
                                 "/api/auth/**",
                                 "/api/test-token/**",
                                 "/api/admin/merchants/fetch",
-                                "/api/auth/kakao/callback"
+                                "/api/auth/kakao/callback",
+                                "/error"
                         ).permitAll()
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(ex -> ex
@@ -64,9 +68,11 @@ public class SecurityConfig {
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-
         config.setAllowCredentials(true);
-        config.addAllowedOriginPattern("*"); // 개발 중엔 *
+
+        // 🔸 프론트엔드 주소 명시 (필요시 여러 개 추가 가능)
+        config.setAllowedOrigins(List.of("http://localhost:3000", "https://2025-chungnamthon-team-5-fe.vercel.app"));
+
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
 
