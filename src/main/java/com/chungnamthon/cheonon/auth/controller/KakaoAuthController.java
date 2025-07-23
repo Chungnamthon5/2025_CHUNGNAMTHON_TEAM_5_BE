@@ -36,8 +36,27 @@ public class KakaoAuthController {
 
     // ✅ 2단계: 카카오에서 인가코드 받아오는 콜백 엔드포인트
     @GetMapping("/callback")
-    public ResponseDto<TokenResponse> kakaoLogin(@RequestParam("code") String code) {
-        TokenResponse tokenResponse = kakaoOauthService.kakaoLogin(code);
-        return ResponseDto.of(tokenResponse, "카카오 로그인 성공");
+    public ResponseEntity<Void> kakaoLogin(@RequestParam("code") String code) {
+        try {
+            TokenResponse tokenResponse = kakaoOauthService.kakaoLogin(code);
+
+            String redirectUrl = UriComponentsBuilder
+                    .fromHttpUrl("https://2025-chungnamthon-team-5-fe.vercel.app/callback")
+                    .queryParam("accessToken", tokenResponse.getAccessToken())
+                    .queryParam("refreshToken", tokenResponse.getRefreshToken())
+                    .build()
+                    .toUriString();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setLocation(URI.create(redirectUrl));
+            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+
+        } catch (Exception e) {
+            // 프론트에 실패 알림용 fallback URL로 리디렉션
+            String fallbackUrl = "https://2025-chungnamthon-team-5-fe.vercel.app/error?msg=login_failed";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setLocation(URI.create(fallbackUrl));
+            return new ResponseEntity<>(headers, HttpStatus.FOUND);
+        }
     }
 }
