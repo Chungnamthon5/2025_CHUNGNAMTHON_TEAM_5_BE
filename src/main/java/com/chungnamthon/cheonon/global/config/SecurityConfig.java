@@ -45,12 +45,10 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/api/oauth/kakao",
-                                "/api/oauth/kakao/callback",
-                                "/api/auth/**",
+                                "/api/auth/kakao",
+                                "/api/auth/kakao/callback",
                                 "/api/test-token/**",
                                 "/api/admin/merchants/fetch",
-                                "/api/auth/kakao/callback",
                                 "/error"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
@@ -71,7 +69,7 @@ public class SecurityConfig {
         config.setAllowCredentials(true);
 
         // 🔸 프론트엔드 주소 명시 (필요시 여러 개 추가 가능)
-        config.setAllowedOrigins(List.of("http://localhost:3000", "https://2025-chungnamthon-team-5-fe.vercel.app"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "https://2025-chungnamthon-team-5-fe.vercel.app"));
 
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
