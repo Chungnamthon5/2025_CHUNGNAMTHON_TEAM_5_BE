@@ -167,7 +167,7 @@ public interface MeetingControllerSwagger {
     @GetMapping("/{meetingId}")
     @Operation(
             summary = "모임 상세 정보 조회",
-            description = "모임 ID를 통해 상세 정보를 조회합니다. 인증 없이 접근할 수 있습니다.",
+            description = "모임 ID를 통해 상세 정보를 조회합니다. 인증 없이 접근할 수 있습니다. 로그인한 경우 본인이 생성한 모임인지 여부와 생성자의 닉네임도 함께 반환됩니다.",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -179,17 +179,19 @@ public interface MeetingControllerSwagger {
                                             name = "모임 상세 정보 응답 예시",
                                             value = """
                                                     {
-                                                        "timeStamp": "2025-07-23T10:30:00",
-                                                        "message": "Successfully retrieved meeting detail.",
-                                                        "data": {
-                                                            "meetingId": 1,
-                                                            "title": "천안역 커피 미팅",
-                                                            "description": "같이 커피 마시면서 네트워킹해요!",
-                                                            "location": "MOKCHEON",
-                                                            "schedule": "WEEKEND",
-                                                            "imageUrl": "https://example.com/meeting.jpg",
-                                                            "openChatUrl": "https://open.kakao.com/o/abc123"
-                                                        }
+                                                      "timeStamp": "2025-07-23T10:30:00",
+                                                      "message": "Successfully retrieved meeting detail.",
+                                                      "data": {
+                                                        "meetingId": 1,
+                                                        "isHost": true,
+                                                        "hostName": "천안유저",
+                                                        "title": "천안역 커피 미팅",
+                                                        "description": "같이 커피 마시면서 네트워킹해요!",
+                                                        "location": "MOKCHEON",
+                                                        "schedule": "WEEKEND",
+                                                        "imageUrl": "https://example.com/meeting.jpg",
+                                                        "openChatUrl": "https://open.kakao.com/o/abc123"
+                                                      }
                                                     }
                                                     """
                                     )
@@ -197,7 +199,7 @@ public interface MeetingControllerSwagger {
                     ),
                     @ApiResponse(
                             responseCode = "404",
-                            description = "해당 ID의 모임이 존재하지 않는 경우",
+                            description = "존재하지 않는 모임 ID",
                             content = @Content(
                                     mediaType = "application/json",
                                     schema = @Schema(implementation = ResponseDto.class),
@@ -205,15 +207,23 @@ public interface MeetingControllerSwagger {
                                             name = "모임 없음 에러",
                                             value = """
                                                     {
-                                                        "httpStatus": "NOT_FOUND",
-                                                        "message": "존재하지 않는 모임입니다.",
-                                                        "timeStamp": "2025-07-23T10:32:00"
+                                                      "httpStatus": "NOT_FOUND",
+                                                      "message": "존재하지 않는 모임입니다.",
+                                                      "timeStamp": "2025-07-23T10:32:00"
                                                     }
                                                     """
                                     )
                             )
                     )
             }
+    )
+    @Parameter(
+            name = "Authorization",
+            description = "JWT 토큰 (Bearer 방식). 선택 항목입니다. 로그인한 경우 본인이 생성한 모임인지 여부가 반영됩니다.",
+            required = false,
+            in = ParameterIn.HEADER,
+            schema = @Schema(type = "string", format = "jwt"),
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     )
     @Parameter(
             name = "meetingId",
@@ -223,7 +233,10 @@ public interface MeetingControllerSwagger {
             schema = @Schema(type = "integer", format = "int64"),
             example = "1"
     )
-    ResponseDto<MeetingDetailResponse> meetingDetail(@PathVariable("meetingId") Long meetingId);
+    ResponseDto<MeetingDetailResponse> meetingDetail(
+            @RequestHeader(name = "Authorization", required = false) String token,
+            @PathVariable("meetingId") Long meetingId
+    );
 
 
     @PatchMapping("/{meetingId}")
