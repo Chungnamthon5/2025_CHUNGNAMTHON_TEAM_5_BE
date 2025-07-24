@@ -6,7 +6,7 @@ import lombok.Getter;
 
 @Getter
 @Builder
-public class MeetingPreviewDto {
+public class MeetingPreviewResponse {
 
     private Long id;
     private String title;
@@ -14,8 +14,8 @@ public class MeetingPreviewDto {
     private String location; // Enum을 문자열로
     private String schedule; // Enum을 문자열로
 
-    public static MeetingPreviewDto from(Meeting meeting) {
-        return MeetingPreviewDto.builder()
+    public static MeetingPreviewResponse from(Meeting meeting) {
+        return MeetingPreviewResponse.builder()
                 .id(meeting.getId())
                 .title(meeting.getTitle())
                 .imageUrl(meeting.getImageUrl())

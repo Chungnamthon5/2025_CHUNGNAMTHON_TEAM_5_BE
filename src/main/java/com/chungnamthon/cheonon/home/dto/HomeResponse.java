@@ -1,6 +1,7 @@
 package com.chungnamthon.cheonon.home.dto;
 
-import com.chungnamthon.cheonon.meeting.dto.response.MeetingPreviewDto;
+import com.chungnamthon.cheonon.meeting.dto.response.MeetingPreviewResponse;
+import com.chungnamthon.cheonon.map.dto.AffiliateHomePreviewResponse;
 import lombok.Builder;
 import lombok.Getter;
 
@@ -10,8 +11,9 @@ import java.util.List;
 @Builder
 public class HomeResponse {
 
-    private List<MeetingPreviewDto> recentMeetings;
-    // 이후 주석 처리해서 확장 준비
+    private List<MeetingPreviewResponse> recentMeetings;
+    private List<AffiliateHomePreviewResponse> topAffiliates;
+
+    // 이후 확장용 주석
     // private List<PowerUserDto> top5PowerUsers;
-    // private List<MerchantPreviewDto> top5Merchants;
 }
