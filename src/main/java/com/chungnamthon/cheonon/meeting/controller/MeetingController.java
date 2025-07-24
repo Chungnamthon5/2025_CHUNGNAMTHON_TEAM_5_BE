@@ -40,9 +40,10 @@ public class MeetingController implements MeetingControllerSwagger {
 
     @GetMapping("/{meetingId}")
     public ResponseDto<MeetingDetailResponse> meetingDetail(
+            @RequestHeader(name = "Authorization", required = false) String token,
             @PathVariable("meetingId") Long meetingId
     ) {
-        MeetingDetailResponse meetingDetailResponse = meetingService.getMeetingDetailInformation(meetingId);
+        MeetingDetailResponse meetingDetailResponse = meetingService.getMeetingDetailInformation(token, meetingId);
         return ResponseDto.of(meetingDetailResponse, "Successfully retrieved meeting detail.");
     }
 
