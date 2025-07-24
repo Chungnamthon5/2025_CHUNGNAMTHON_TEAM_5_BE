@@ -37,6 +37,7 @@ public class MeetingService {
 
     /**
      * 모임 생성 메서드
+     *
      * @param token
      * @param createMeetingRequest
      * @return createMeetingResponse (meetingId)
@@ -78,6 +79,7 @@ public class MeetingService {
 
     /**
      * 모임 리스트 조회 메서드
+     *
      * @return meetingListResponse (전체 리스트)
      */
     public List<MeetingListResponse> getMeetingList(String token) {
@@ -111,12 +113,25 @@ public class MeetingService {
 
     /**
      * 모임 상세 정보 조회
+     *
      * @param meetingId
      * @return meetingDetailResponse (meetingId, title, description, location, schedule, imageUrl, openChatUrl)
      */
-    public MeetingDetailResponse getMeetingDetailInformation(Long meetingId) {
+    public MeetingDetailResponse getMeetingDetailInformation(String token, Long meetingId) {
         Meeting meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        Long userId = null;
+        if (token != null) {
+            userId = jwtUtil.getUserIdFromToken(token);
+        }
+
+        boolean isHost = false;
+        if (userId != null) {
+            isHost = userId.equals(meeting.getUser().getId());
+        }
+
+        String hostName = meeting.getUser().getNickname();
 
         String title = meeting.getTitle();
         String description = meeting.getDescription();
@@ -126,13 +141,14 @@ public class MeetingService {
         String openChatUrl = meeting.getOpenChatUrl();
 
         MeetingDetailResponse meetingDetailResponse
-                = new MeetingDetailResponse(meetingId, title, description, location, schedule, imageUrl, openChatUrl);
+                = new MeetingDetailResponse(meetingId, isHost, hostName, title, description, location, schedule, imageUrl, openChatUrl);
 
         return meetingDetailResponse;
     }
 
     /**
      * 모임 정보 수정 메서드
+     *
      * @param token
      * @param meetingId
      * @param updateMeetingRequest
