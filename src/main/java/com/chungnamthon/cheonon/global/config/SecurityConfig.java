@@ -33,7 +33,7 @@ public class SecurityConfig {
                 "/api-docs/**",
                 "/v3/api-docs/**",
                 "/swagger-ui/**",
-                "/"
+                "/actuator/health"
         );
     }
 
@@ -53,7 +53,7 @@ public class SecurityConfig {
                                 "/error",
                                 "/api/meetings",
                                 "/api/meetings/{meetingId}",
-                                "/"
+                                "/actuator/health"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
