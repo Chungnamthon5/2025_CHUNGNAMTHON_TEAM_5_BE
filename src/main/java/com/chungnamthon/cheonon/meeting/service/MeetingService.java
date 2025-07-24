@@ -166,6 +166,43 @@ public class MeetingService {
         return meetingDetailResponse;
     }
 
+    public List<MeetingUsersListResponse> getmeetingUsersList(String token, Long meetingId) {
+        Long hostId = jwtUtil.getUserIdFromToken(token);
+
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        if (!hostId.equals(meeting.getUser().getId())) {
+            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_MEMBER_ACCESS);
+        }
+
+        List<MeetingUser> meetingUsers = meetingUserRepository.findByMeetingId(meetingId);
+
+        List<MeetingUsersListResponse> meetingUsersListResponses = new ArrayList<>();
+        for (MeetingUser meetingUser : meetingUsers) {
+            Role role = meetingUser.getRole();
+            if (role.equals(Role.HOST)) {
+                continue;
+            }
+
+            Status status = meetingUser.getStatus();
+            if (status.equals(Status.REJECTED) || status.equals(Status.KICKED) || status.equals(Status.LEFT)) {
+                continue;
+            }
+
+            Long userId = meetingUser.getUser().getId();
+            String nickname = meetingUser.getUser().getNickname();
+            String imageUrl = meetingUser.getUser().getImage();
+
+            MeetingUsersListResponse meetingUsersListResponse
+                    = new MeetingUsersListResponse(userId, nickname, imageUrl, status);
+
+            meetingUsersListResponses.add(meetingUsersListResponse);
+        }
+
+        return meetingUsersListResponses;
+    }
+
     /**
      * 모임 정보 수정 메서드
      *

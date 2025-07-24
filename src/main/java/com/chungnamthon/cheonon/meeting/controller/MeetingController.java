@@ -53,6 +53,15 @@ public class MeetingController implements MeetingControllerSwagger {
         return ResponseDto.of(meetingDetailResponse, "Successfully retrieved meeting detail.");
     }
 
+    @GetMapping("/{meetingId}/users")
+    public ResponseDto<List<MeetingUsersListResponse>> meetingUsersList(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId
+    ) {
+        List<MeetingUsersListResponse> meetingUsersListResponses = meetingService.getmeetingUsersList(token, meetingId);
+        return ResponseDto.of(meetingUsersListResponses, "Successfully retrieved meeting members.");
+    }
+
     @PatchMapping("/{meetingId}")
     public ResponseDto<UpdateMeetingResponse> updateMeeting(
             @RequestHeader("Authorization") String token,
