@@ -1,6 +1,7 @@
 package com.chungnamthon.cheonon.meeting.domain;
 
 import com.chungnamthon.cheonon.meeting.domain.value.Role;
+import com.chungnamthon.cheonon.meeting.domain.value.Status;
 import com.chungnamthon.cheonon.user.domain.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -37,6 +38,10 @@ public class MeetingUser {
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
     private Role role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status")
+    private Status status;
 
     @CreatedDate
     @Column(name = "created_at")
