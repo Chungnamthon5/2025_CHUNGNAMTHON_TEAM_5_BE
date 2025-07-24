@@ -2,13 +2,18 @@ package com.chungnamthon.cheonon.map.service;
 
 import com.chungnamthon.cheonon.map.domain.Affiliate;
 import com.chungnamthon.cheonon.map.dto.AffiliateDto;
+import com.chungnamthon.cheonon.map.dto.AffiliateHomePreviewResponse;
+import com.chungnamthon.cheonon.map.dto.AffiliatePreviewResponse;
 import com.chungnamthon.cheonon.map.repository.AffiliateRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -47,5 +52,23 @@ public class AffiliateService {
                 .createAt(a.getCreatedAt())
                 .updateAt(a.getUpdatedAt())
                 .build();
+    }
+
+    private final AffiliateRepository affiliateRepository;
+
+    // 홈 화면용 간단 정보 (이름만)
+    public List<AffiliateHomePreviewResponse> getTop4Affiliates() {
+        return affiliateRepository.findAll(PageRequest.of(0, 4))
+                .stream()
+                .map(AffiliateHomePreviewResponse::from)
+                .toList();
+    }
+
+    // 제휴 업체 전체 목록 or 상세용
+    public List<AffiliatePreviewResponse> getAllAffiliates() {
+        return affiliateRepository.findAll()
+                .stream()
+                .map(AffiliatePreviewResponse::from)
+                .toList();
     }
 }

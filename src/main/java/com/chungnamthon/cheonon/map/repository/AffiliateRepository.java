@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface AffiliateRepository extends JpaRepository<Affiliate, Long> {
+import java.util.List;
 
+public interface AffiliateRepository extends JpaRepository<Affiliate, Long> {
+    List<Affiliate> findTop3ByOrderByCreatedAtDesc();
 }
