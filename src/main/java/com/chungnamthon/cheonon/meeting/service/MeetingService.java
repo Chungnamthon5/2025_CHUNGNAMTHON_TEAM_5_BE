@@ -9,12 +9,10 @@ import com.chungnamthon.cheonon.meeting.domain.MeetingUser;
 import com.chungnamthon.cheonon.meeting.domain.value.Location;
 import com.chungnamthon.cheonon.meeting.domain.value.Role;
 import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
+import com.chungnamthon.cheonon.meeting.domain.value.Status;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
-import com.chungnamthon.cheonon.meeting.dto.response.CreateMeetingResponse;
-import com.chungnamthon.cheonon.meeting.dto.response.MeetingDetailResponse;
-import com.chungnamthon.cheonon.meeting.dto.response.MeetingListResponse;
-import com.chungnamthon.cheonon.meeting.dto.response.UpdateMeetingResponse;
+import com.chungnamthon.cheonon.meeting.dto.response.*;
 import com.chungnamthon.cheonon.meeting.repository.MeetingRepository;
 import com.chungnamthon.cheonon.meeting.repository.MeetingUserRepository;
 import com.chungnamthon.cheonon.user.domain.User;
@@ -69,6 +67,7 @@ public class MeetingService {
                 .meeting(meeting)
                 .user(user)
                 .role(Role.HOST)
+                .status(Status.PARTICIPATING)
                 .build();
 
         meetingRepository.save(meeting);
