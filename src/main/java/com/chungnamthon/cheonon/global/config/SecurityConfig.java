@@ -53,6 +53,7 @@ public class SecurityConfig {
                                 "/error",
                                 "/api/meetings",
                                 "/api/meetings/{meetingId}",
+                                "/api/coupons",
                                 "/actuator/health"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
