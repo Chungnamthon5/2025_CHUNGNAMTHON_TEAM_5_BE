@@ -76,6 +76,27 @@ public class MeetingService {
         return new CreateMeetingResponse(meeting.getId());
     }
 
+    @Transactional
+    public JoinMeetingResponse joinMeeting(String token, Long meetingId) {
+        Long userId = jwtUtil.getUserIdFromToken(token);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
+
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        MeetingUser meetingUser = MeetingUser.builder()
+                .meeting(meeting)
+                .user(user)
+                .role(Role.GUEST)
+                .status(Status.REQUESTED)
+                .build();
+
+        meetingUserRepository.save(meetingUser);
+
+        return new JoinMeetingResponse(meetingId);
+    }
+
     /**
      * 모임 리스트 조회 메서드
      *
