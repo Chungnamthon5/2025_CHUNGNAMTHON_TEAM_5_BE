@@ -5,6 +5,7 @@ import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
 
 public record MeetingListResponse(
         Long meetingId,
+        boolean isHost,
         String title,
         String description,
         Location location,

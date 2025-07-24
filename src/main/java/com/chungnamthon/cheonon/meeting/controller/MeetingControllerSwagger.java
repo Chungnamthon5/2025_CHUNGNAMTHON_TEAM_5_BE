@@ -43,14 +43,14 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "모임 생성 성공 응답",
                                             value = """
-                                                {
-                                                    "timeStamp": "2025-07-17T22:45:00",
-                                                    "message": "The meeting was created successfully.",
-                                                    "data": {
-                                                        "meetingId": 1
+                                                    {
+                                                        "timeStamp": "2025-07-17T22:45:00",
+                                                        "message": "The meeting was created successfully.",
+                                                        "data": {
+                                                            "meetingId": 1
+                                                        }
                                                     }
-                                                }
-                                                """
+                                                    """
                                     )
                             )
                     ),
@@ -63,12 +63,12 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "인증 실패 에러",
                                             value = """
-                                                {
-                                                    "httpStatus": "UNAUTHORIZED",
-                                                    "message": "유효하지 않은 토큰입니다.",
-                                                    "timeStamp": "2025-07-17T22:46:00"
-                                                }
-                                                """
+                                                    {
+                                                        "httpStatus": "UNAUTHORIZED",
+                                                        "message": "유효하지 않은 토큰입니다.",
+                                                        "timeStamp": "2025-07-17T22:46:00"
+                                                    }
+                                                    """
                                     )
                             )
                     )
@@ -92,14 +92,14 @@ public interface MeetingControllerSwagger {
                     examples = @ExampleObject(
                             name = "모임 생성 요청 예시",
                             value = """
-                                {
-                                    "title": "천안역 커피 미팅",
-                                    "description": "같이 커피 마시면서 네트워킹해요!",
-                                    "location": "MOKCHEON",
-                                    "maxMember": 4,
-                                    "imageUrl": "https://example.com/meeting.jpg"
-                                }
-                        """
+                                            {
+                                                "title": "천안역 커피 미팅",
+                                                "description": "같이 커피 마시면서 네트워킹해요!",
+                                                "location": "MOKCHEON",
+                                                "maxMember": 4,
+                                                "imageUrl": "https://example.com/meeting.jpg"
+                                            }
+                                    """
                     )
             )
     )
@@ -111,7 +111,7 @@ public interface MeetingControllerSwagger {
     @GetMapping
     @Operation(
             summary = "모임 리스트 조회",
-            description = "전체 모임 목록을 조회합니다. 인증 없이 접근할 수 있습니다.",
+            description = "전체 모임 목록을 조회합니다. 로그인하지 않은 사용자도 접근할 수 있으며, 로그인한 경우 본인이 생성한 모임인지 여부를 isHost로 함께 반환합니다. (본인이 생성한 모임일 시 true, else false)",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -122,35 +122,47 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "모임 리스트 조회 성공 응답 예시",
                                             value = """
-                    {
-                        "timeStamp": "2025-07-22T22:45:00",
-                        "message": "Successfully retrieved meeting list.",
-                        "data": [
-                            {
-                                "meetingId": 1,
-                                "title": "천안역 커피 미팅",
-                                "description": "같이 커피 마시면서 네트워킹해요!",
-                                "location": "MOKCHEON",
-                                "schedule": "WEEKEND",
-                                "imageUrl": "https://example.com/image1.jpg"
-                            },
-                            {
-                                "meetingId": 2,
-                                "title": "테니스 치실 분",
-                                "description": "라켓 있으신 분 환영",
-                                "location": "MOKCHEON",
-                                "schedule": "WEEKDAY",
-                                "imageUrl": "https://example.com/image2.jpg"
-                            }
-                        ]
-                    }
-                    """
+                                                    {
+                                                        "timeStamp": "2025-07-22T22:45:00",
+                                                        "message": "Successfully retrieved meeting list.",
+                                                        "data": [
+                                                            {
+                                                                "meetingId": 1,
+                                                                "isHost": true,
+                                                                "title": "천안역 커피 미팅",
+                                                                "description": "같이 커피 마시면서 네트워킹해요!",
+                                                                "location": "MOKCHEON",
+                                                                "schedule": "WEEKEND",
+                                                                "imageUrl": "https://example.com/image1.jpg"
+                                                            },
+                                                            {
+                                                                "meetingId": 2,
+                                                                "isHost": false,
+                                                                "title": "테니스 치실 분",
+                                                                "description": "라켓 있으신 분 환영",
+                                                                "location": "MOKCHEON",
+                                                                "schedule": "WEEKDAY",
+                                                                "imageUrl": "https://example.com/image2.jpg"
+                                                            }
+                                                        ]
+                                                    }
+                                                    """
                                     )
                             )
                     )
             }
     )
-    ResponseDto<List<MeetingListResponse>> meetingList();
+    @Parameter(
+            name = "Authorization",
+            description = "JWT 토큰 (Bearer 방식). 선택 항목입니다. 로그인한 경우 본인이 생성한 모임 여부가 반영됩니다.",
+            required = false,
+            in = ParameterIn.HEADER,
+            schema = @Schema(type = "string", format = "jwt"),
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
+    ResponseDto<List<MeetingListResponse>> meetingList(
+            @RequestHeader(name = "Authorization", required = false) String token
+    );
 
     @GetMapping("/{meetingId}")
     @Operation(
@@ -166,20 +178,20 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "모임 상세 정보 응답 예시",
                                             value = """
-                                        {
-                                            "timeStamp": "2025-07-23T10:30:00",
-                                            "message": "Successfully retrieved meeting detail.",
-                                            "data": {
-                                                "meetingId": 1,
-                                                "title": "천안역 커피 미팅",
-                                                "description": "같이 커피 마시면서 네트워킹해요!",
-                                                "location": "MOKCHEON",
-                                                "schedule": "WEEKEND",
-                                                "imageUrl": "https://example.com/meeting.jpg",
-                                                "openChatUrl": "https://open.kakao.com/o/abc123"
-                                            }
-                                        }
-                                        """
+                                                    {
+                                                        "timeStamp": "2025-07-23T10:30:00",
+                                                        "message": "Successfully retrieved meeting detail.",
+                                                        "data": {
+                                                            "meetingId": 1,
+                                                            "title": "천안역 커피 미팅",
+                                                            "description": "같이 커피 마시면서 네트워킹해요!",
+                                                            "location": "MOKCHEON",
+                                                            "schedule": "WEEKEND",
+                                                            "imageUrl": "https://example.com/meeting.jpg",
+                                                            "openChatUrl": "https://open.kakao.com/o/abc123"
+                                                        }
+                                                    }
+                                                    """
                                     )
                             )
                     ),
@@ -192,12 +204,12 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "모임 없음 에러",
                                             value = """
-                                        {
-                                            "httpStatus": "NOT_FOUND",
-                                            "message": "존재하지 않는 모임입니다.",
-                                            "timeStamp": "2025-07-23T10:32:00"
-                                        }
-                                        """
+                                                    {
+                                                        "httpStatus": "NOT_FOUND",
+                                                        "message": "존재하지 않는 모임입니다.",
+                                                        "timeStamp": "2025-07-23T10:32:00"
+                                                    }
+                                                    """
                                     )
                             )
                     )
@@ -228,14 +240,14 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "모임 수정 성공 응답",
                                             value = """
-                                            {
-                                                "timeStamp": "2025-07-22T18:40:00",
-                                                "message": "Successfully updated a meeting information.",
-                                                "data": {
-                                                    "meetingId": 1
-                                                }
-                                            }
-                                            """
+                                                    {
+                                                        "timeStamp": "2025-07-22T18:40:00",
+                                                        "message": "Successfully updated a meeting information.",
+                                                        "data": {
+                                                            "meetingId": 1
+                                                        }
+                                                    }
+                                                    """
                                     )
                             )
                     ),
@@ -248,12 +260,12 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "잘못된 요청 예시",
                                             value = """
-                                            {
-                                                "httpStatus": "BAD_REQUEST",
-                                                "message": "스케줄 타입은 필수입니다.",
-                                                "timeStamp": "2025-07-22T18:41:00"
-                                            }
-                                            """
+                                                    {
+                                                        "httpStatus": "BAD_REQUEST",
+                                                        "message": "스케줄 타입은 필수입니다.",
+                                                        "timeStamp": "2025-07-22T18:41:00"
+                                                    }
+                                                    """
                                     )
                             )
                     )
@@ -285,15 +297,15 @@ public interface MeetingControllerSwagger {
                     examples = @ExampleObject(
                             name = "모임 수정 요청 예시",
                             value = """
-                            {
-                                "title": "수정된 모임 제목",
-                                "description": "모임 설명을 업데이트합니다.",
-                                "location": "MOKCHEON",
-                                "openChatUrl": "https://open.kakao.com/o/gdHuVjIh",
-                                "schedule": "WEEKEND",
-                                "imageUrl": "https://example.com/new-image.jpg"
-                            }
-                        """
+                                        {
+                                            "title": "수정된 모임 제목",
+                                            "description": "모임 설명을 업데이트합니다.",
+                                            "location": "MOKCHEON",
+                                            "openChatUrl": "https://open.kakao.com/o/gdHuVjIh",
+                                            "schedule": "WEEKEND",
+                                            "imageUrl": "https://example.com/new-image.jpg"
+                                        }
+                                    """
                     )
             )
     )
@@ -317,12 +329,12 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "모임 삭제 성공 응답",
                                             value = """
-                                            {
-                                                "timeStamp": "2025-07-23T13:45:00",
-                                                "message": "The meeting was deleted successfully.",
-                                                "data": null
-                                            }
-                                            """
+                                                    {
+                                                        "timeStamp": "2025-07-23T13:45:00",
+                                                        "message": "The meeting was deleted successfully.",
+                                                        "data": null
+                                                    }
+                                                    """
                                     )
                             )
                     ),
@@ -335,12 +347,12 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "삭제 권한 없음 에러",
                                             value = """
-                                            {
-                                                "httpStatus": "FORBIDDEN",
-                                                "message": "본인의 모임 게시글만 수정할 수 있습니다.",
-                                                "timeStamp": "2025-07-23T13:46:00"
-                                            }
-                                            """
+                                                    {
+                                                        "httpStatus": "FORBIDDEN",
+                                                        "message": "본인의 모임 게시글만 수정할 수 있습니다.",
+                                                        "timeStamp": "2025-07-23T13:46:00"
+                                                    }
+                                                    """
                                     )
                             )
                     ),
@@ -353,12 +365,12 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "모임 없음 에러",
                                             value = """
-                                            {
-                                                "httpStatus": "NOT_FOUND",
-                                                "message": "존재하지 않는 모임입니다.",
-                                                "timeStamp": "2025-07-23T13:47:00"
-                                            }
-                                            """
+                                                    {
+                                                        "httpStatus": "NOT_FOUND",
+                                                        "message": "존재하지 않는 모임입니다.",
+                                                        "timeStamp": "2025-07-23T13:47:00"
+                                                    }
+                                                    """
                                     )
                             )
                     )

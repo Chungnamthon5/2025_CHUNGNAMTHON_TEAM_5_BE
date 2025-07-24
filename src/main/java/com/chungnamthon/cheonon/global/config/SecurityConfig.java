@@ -49,7 +49,9 @@ public class SecurityConfig {
                                 "/api/auth/kakao/callback",
                                 "/api/test-token/**",
                                 "/api/admin/merchants/fetch",
-                                "/error"
+                                "/error",
+                                "/api/meetings",
+                                "/api/meetings/{meetingId}"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
