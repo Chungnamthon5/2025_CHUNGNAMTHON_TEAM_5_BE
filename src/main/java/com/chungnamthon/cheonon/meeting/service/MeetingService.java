@@ -69,12 +69,21 @@ public class MeetingService {
      * 모임 리스트 조회 메서드
      * @return meetingListResponse (전체 리스트)
      */
-    public List<MeetingListResponse> getMeetingList() {
+    public List<MeetingListResponse> getMeetingList(String token) {
         List<Meeting> meetingList = meetingRepository.findAll();
+
+        Long userId = null;
+        if (token != null) {
+            userId = jwtUtil.getUserIdFromToken(token);
+        }
 
         List<MeetingListResponse> meetingListResponses = new ArrayList<>();
         for (Meeting meeting : meetingList) {
             Long meetingId = meeting.getId();
+            boolean isHost = false;
+            if (userId != null) {
+                isHost = userId.equals(meeting.getUser().getId());
+            }
             String title = meeting.getTitle();
             String description = meeting.getDescription();
             Location location = meeting.getLocation();
@@ -82,7 +91,7 @@ public class MeetingService {
             String imageUrl = meeting.getImageUrl();
 
             MeetingListResponse meetingListResponse
-                    = new MeetingListResponse(meetingId, title, description, location, schedule, imageUrl);
+                    = new MeetingListResponse(meetingId, isHost, title, description, location, schedule, imageUrl);
             meetingListResponses.add(meetingListResponse);
         }
 
