@@ -32,7 +32,8 @@ public class SecurityConfig {
         return web -> web.ignoring().requestMatchers(
                 "/api-docs/**",
                 "/v3/api-docs/**",
-                "/swagger-ui/**"
+                "/swagger-ui/**",
+                "/"
         );
     }
 
@@ -51,7 +52,8 @@ public class SecurityConfig {
                                 "/api/admin/merchants/fetch",
                                 "/error",
                                 "/api/meetings",
-                                "/api/meetings/{meetingId}"
+                                "/api/meetings/{meetingId}",
+                                "/"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
