@@ -108,37 +108,30 @@ public class KakaoOauthService {
             throw new BusinessException(AuthenticationError.KAKAO_EMAIL_NOT_PROVIDED);
         }
 
+        // 🔹 유저 조회 or 생성
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> userRepository.save(User.builder()
                         .email(email)
-                        .nickname(kakaoUser.getKakao_account().getProfile().getNickname()) // ✅ 고친 부분
-                        .image(kakaoUser.getKakao_account().getProfile().getThumbnail_image_url()) // ✅ 같이 유지
+                        .nickname(kakaoUser.getKakao_account().getProfile().getNickname())
+                        .image(kakaoUser.getKakao_account().getProfile().getThumbnail_image_url())
                         .role("USER")
                         .build()));
 
-        // JWT 발급
+        // 🔹 기존 리프레시 토큰 전부 삭제 (단일 토큰 정책)
+        refreshTokenRepository.deleteAllByUser_Id(user.getId());
+
+        // 🔹 새 토큰 발급 및 저장
         String jwtAccessToken = jwtUtil.createAccessToken(user.getId());
         TokenWithExpiry refreshTokenWithExpiry = jwtUtil.createRefreshTokenWithExpiry(user.getId());
 
-        // 리프레시 토큰 저장
-        // 기존 리프레시 토큰 존재 여부 확인
-        refreshTokenRepository.findByUser(user)
-                .ifPresentOrElse(
-                        existingToken -> existingToken.update(
-                                refreshTokenWithExpiry.getToken(),
-                                LocalDateTime.now(),
-                                refreshTokenWithExpiry.getExpiry()
-                        ),
-                        () -> {
-                            RefreshToken newToken = RefreshToken.builder()
-                                    .token(refreshTokenWithExpiry.getToken())
-                                    .createdAt(LocalDateTime.now())
-                                    .expiredAt(refreshTokenWithExpiry.getExpiry())
-                                    .user(user)
-                                    .build();
-                            refreshTokenRepository.save(newToken);
-                        }
-                );
+        RefreshToken newToken = RefreshToken.builder()
+                .token(refreshTokenWithExpiry.getToken())
+                .createdAt(LocalDateTime.now())
+                .expiredAt(refreshTokenWithExpiry.getExpiry())
+                .user(user)
+                .build();
+
+        refreshTokenRepository.save(newToken);
 
         return new TokenResponse(jwtAccessToken, refreshTokenWithExpiry.getToken());
     }
