@@ -5,6 +5,8 @@ import com.chungnamthon.cheonon.map.dto.AffiliateHomePreviewResponse;
 import com.chungnamthon.cheonon.map.service.AffiliateService;
 import com.chungnamthon.cheonon.meeting.dto.response.MeetingPreviewResponse;
 import com.chungnamthon.cheonon.meeting.repository.MeetingRepository;
+import com.chungnamthon.cheonon.point.dto.response.PowerUserResponse;
+import com.chungnamthon.cheonon.point.service.PowerUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -18,6 +20,7 @@ public class HomeService {
 
     private final MeetingRepository meetingRepository;
     private final AffiliateService affiliateService;
+    private final PowerUserService powerUserService; // ✅ 추가된 부분
 
     public HomeResponse getHomeData() {
         List<MeetingPreviewResponse> recentMeetings;
@@ -39,10 +42,18 @@ public class HomeService {
             topAffiliates = List.of();
         }
 
+        List<PowerUserResponse> topPowerUsers;
+        try {
+            topPowerUsers = powerUserService.getRecentPowerUsers();
+        } catch (Exception e) {
+            log.error("홈화면 파워유저 데이터 조회 실패: {}", e.getMessage());
+            topPowerUsers = List.of();
+        }
+
         return HomeResponse.builder()
                 .recentMeetings(recentMeetings)
-                // .topUsers(null) // 추후 구현
                 .topAffiliates(topAffiliates)
+                .powerUsers(topPowerUsers)
                 .build();
     }
 }
