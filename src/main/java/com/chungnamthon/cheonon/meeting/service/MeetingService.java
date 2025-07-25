@@ -7,7 +7,6 @@ import com.chungnamthon.cheonon.global.exception.error.MeetingError;
 import com.chungnamthon.cheonon.meeting.domain.Meeting;
 import com.chungnamthon.cheonon.meeting.domain.MeetingUser;
 import com.chungnamthon.cheonon.meeting.domain.value.Location;
-import com.chungnamthon.cheonon.meeting.domain.value.Role;
 import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
 import com.chungnamthon.cheonon.meeting.domain.value.Status;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
@@ -66,8 +65,7 @@ public class MeetingService {
         MeetingUser meetingUser = MeetingUser.builder()
                 .meeting(meeting)
                 .user(user)
-                .role(Role.HOST)
-                .status(Status.PARTICIPATING)
+                .status(Status.HOST)
                 .build();
 
         meetingRepository.save(meeting);
@@ -88,7 +86,6 @@ public class MeetingService {
         MeetingUser meetingUser = MeetingUser.builder()
                 .meeting(meeting)
                 .user(user)
-                .role(Role.GUEST)
                 .status(Status.REQUESTED)
                 .build();
 
