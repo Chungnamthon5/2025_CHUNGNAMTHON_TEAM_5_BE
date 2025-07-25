@@ -1,6 +1,5 @@
 package com.chungnamthon.cheonon.meeting.domain;
 
-import com.chungnamthon.cheonon.meeting.domain.value.Role;
 import com.chungnamthon.cheonon.meeting.domain.value.Status;
 import com.chungnamthon.cheonon.user.domain.User;
 import jakarta.persistence.*;
@@ -34,10 +33,6 @@ public class MeetingUser {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "role")
-    private Role role;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status")
