@@ -177,13 +177,8 @@ public class MeetingService {
 
         List<MeetingUsersListResponse> meetingUsersListResponses = new ArrayList<>();
         for (MeetingUser meetingUser : meetingUsers) {
-            Role role = meetingUser.getRole();
-            if (role.equals(Role.HOST)) {
-                continue;
-            }
-
             Status status = meetingUser.getStatus();
-            if (status.equals(Status.REJECTED) || status.equals(Status.KICKED) || status.equals(Status.LEFT)) {
+            if (status.equals(Status.HOST) || status.equals(Status.REJECTED) || status.equals(Status.KICKED) || status.equals(Status.LEFT)) {
                 continue;
             }
 
