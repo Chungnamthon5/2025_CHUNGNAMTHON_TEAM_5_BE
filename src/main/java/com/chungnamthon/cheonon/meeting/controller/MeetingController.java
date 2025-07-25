@@ -46,6 +46,16 @@ public class MeetingController implements MeetingControllerSwagger {
         return ResponseDto.of(approveJoinMeetingResponse, "The user has been approved to join the meeting.");
     }
 
+    @PostMapping("{meetingId}/kick/{userId}")
+    public ResponseDto<KickMemberMeetingResponse> kickMemberMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId,
+            @PathVariable("userId") Long userId
+    ) {
+        KickMemberMeetingResponse kickMemberMeetingResponse = meetingService.kickMemberMeeting(token, meetingId, userId);
+        return ResponseDto.of(kickMemberMeetingResponse, "The user has been removed from the meeting.");
+    }
+
     @GetMapping
     public ResponseDto<List<MeetingListResponse>> meetingList(
             @RequestHeader(name = "Authorization", required = false) String token

@@ -136,6 +136,34 @@ public class MeetingService {
     }
 
     /**
+     * 모임 멤버 강퇴 메서드
+     * @param token
+     * @param meetingId
+     * @param userId
+     * @return KickMemberMeetingResponse (meetingId, kickedUserId)
+     */
+    @Transactional
+    public KickMemberMeetingResponse kickMemberMeeting(String token, Long meetingId, Long userId) {
+        Long hostId = jwtUtil.getUserIdFromToken(token);
+
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        if (!hostId.equals(meeting.getUser().getId())) {
+            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_MEMBER_MANAGEMENT);
+        }
+
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+        if (meetingUser.getStatus().equals(Status.PARTICIPATING)) {
+            meetingUser.approveJoin(Status.KICKED);
+        } else {
+            throw new BusinessException(MeetingError.NOT_A_PARTICIPATING_MEMBER);
+        }
+
+        return new KickMemberMeetingResponse(meetingId, userId);
+    }
+
+    /**
      * 모임 리스트 조회 메서드
      *
      * @return meetingListResponse (전체 리스트)
