@@ -185,7 +185,7 @@ public class MeetingService {
         List<MeetingUsersListResponse> meetingUsersListResponses = new ArrayList<>();
         for (MeetingUser meetingUser : meetingUsers) {
             Status status = meetingUser.getStatus();
-            if (status.equals(Status.HOST) || status.equals(Status.REJECTED) || status.equals(Status.KICKED) || status.equals(Status.LEFT)) {
+            if (status.equals(Status.HOST) || status.equals(Status.REJECTED) || status.equals(Status.KICKED)) {
                 continue;
             }
 
@@ -271,6 +271,7 @@ public class MeetingService {
 
     /**
      * 모임 가입 신청 취소
+     *
      * @param token
      * @param meetingId
      * @return CancelJoinMeetingResponse (meetingId, userId)
@@ -291,4 +292,21 @@ public class MeetingService {
         return new CancelJoinMeetingResponse(meetingId, userId);
     }
 
+    @Transactional
+    public LeaveMeetingResponse leaveMeeting(String token, Long meetingId) {
+        Long userId = jwtUtil.getUserIdFromToken(token);
+
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+
+        Long meetingUserId = meetingUser.getId();
+        if (meetingUser.getStatus().equals(Status.PARTICIPATING)) {
+            meetingUserRepository.deleteById(meetingUserId);
+        } else if (meetingUser.getStatus().equals(Status.HOST)) {
+            throw new BusinessException(MeetingError.HOST_CANNOT_LEAVE_MEETING);
+        } else {
+            throw new BusinessException(MeetingError.NOT_JOINED_MEETING);
+        }
+
+        return new LeaveMeetingResponse(meetingId, userId);
+    }
 }
