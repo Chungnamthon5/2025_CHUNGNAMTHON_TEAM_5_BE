@@ -21,7 +21,7 @@ public class MyPageService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
         int currentPoint = pointRepository.sumPointByUserId(userId); // 총 포인트 (ex. +2000 -300 등 계산된 결과)
-        int couponCount = couponUserRepository.countByUserId(userId); // 유저가 보유한 쿠폰 개수
+        int couponCount = couponUserRepository.countByUser_Id(userId); // 유저가 보유한 쿠폰 개수
 
         return MyPageResponse.builder()
                 .userId(user.getId())
