@@ -80,10 +80,17 @@ public class MeetingService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
 
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+        if (meetingUser.getStatus().equals(Status.HOST) || meetingUser.getStatus().equals(Status.PARTICIPATING)) {
+            throw new BusinessException(MeetingError.ALREADY_JOINED_MEETING);
+        } else if (meetingUser.getStatus().equals(Status.KICKED)) {
+            throw new BusinessException(MeetingError.KICKED_USER_CANNOT_REJOIN);
+        }
+
         Meeting meeting = meetingRepository.findById(meetingId)
                 .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
 
-        MeetingUser meetingUser = MeetingUser.builder()
+        meetingUser = MeetingUser.builder()
                 .meeting(meeting)
                 .user(user)
                 .status(Status.REQUESTED)
