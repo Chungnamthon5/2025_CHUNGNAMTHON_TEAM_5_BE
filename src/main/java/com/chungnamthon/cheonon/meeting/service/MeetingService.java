@@ -268,4 +268,27 @@ public class MeetingService {
 
         meetingRepository.deleteById(meetingId);
     }
+
+    /**
+     * 모임 가입 신청 취소
+     * @param token
+     * @param meetingId
+     * @return CancelJoinMeetingResponse (meetingId, userId)
+     */
+    @Transactional
+    public CancelJoinMeetingResponse cancelJoinMeeting(String token, Long meetingId) {
+        Long userId = jwtUtil.getUserIdFromToken(token);
+
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+
+        Long meetingUserId = meetingUser.getId();
+        if (meetingUser.getStatus().equals(Status.REQUESTED)) {
+            meetingUserRepository.deleteById(meetingUserId);
+        } else {
+            throw new BusinessException(MeetingError.INVALID_JOIN_REQUEST_STATE);
+        }
+
+        return new CancelJoinMeetingResponse(meetingId, userId);
+    }
+
 }
