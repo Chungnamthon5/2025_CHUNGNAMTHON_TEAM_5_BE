@@ -107,6 +107,13 @@ public class MeetingService {
         return new JoinMeetingResponse(meetingId);
     }
 
+    /**
+     * 모임 가입 신청 승인 메서드
+     * @param token
+     * @param meetingId
+     * @param userId
+     * @return ApproveJoinMeetingResponse (meetingId, approvedUserId)
+     */
     @Transactional
     public ApproveJoinMeetingResponse approveJoinMeeting(String token, Long meetingId, Long userId) {
         Long hostId = jwtUtil.getUserIdFromToken(token);
@@ -197,6 +204,12 @@ public class MeetingService {
         return meetingDetailResponse;
     }
 
+    /**
+     * 모임 멤버 리스트 메서드
+     * @param token
+     * @param meetingId
+     * @return List<MeetingUsersListResponse> (userId, userNickName, userImageUrl, status)
+     */
     public List<MeetingUsersListResponse> getmeetingUsersList(String token, Long meetingId) {
         Long hostId = jwtUtil.getUserIdFromToken(token);
 
@@ -231,7 +244,6 @@ public class MeetingService {
 
     /**
      * 모임 정보 수정 메서드
-     *
      * @param token
      * @param meetingId
      * @param updateMeetingRequest
@@ -283,6 +295,11 @@ public class MeetingService {
         return new UpdateMeetingResponse(meeting.getId());
     }
 
+    /**
+     * 모임 삭제 메서드
+     * @param token
+     * @param meetingId
+     */
     @Transactional
     public void deleteMeeting(String token, Long meetingId) {
         Meeting meeting = meetingRepository.findById(meetingId)
@@ -319,6 +336,12 @@ public class MeetingService {
         return new CancelJoinMeetingResponse(meetingId, userId);
     }
 
+    /**
+     * 모임 나가기 메서드
+     * @param token
+     * @param meetingId
+     * @return LeaveMeetingResponse (meetingUser, leftUserId)
+     */
     @Transactional
     public LeaveMeetingResponse leaveMeeting(String token, Long meetingId) {
         Long userId = jwtUtil.getUserIdFromToken(token);
@@ -335,5 +358,34 @@ public class MeetingService {
         }
 
         return new LeaveMeetingResponse(meetingId, userId);
+    }
+
+    /**
+     * 모임 가입 신청 거절 메서드
+     * @param token
+     * @param meetingId
+     * @param userId
+     * @return RejectMeetingResponse (meetingId, rejectedUserId)
+     */
+    @Transactional
+    public RejectMeetingResponse rejectMeeting(String token, Long meetingId, Long userId) {
+        Long hostId = jwtUtil.getUserIdFromToken(token);
+
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        if (!hostId.equals(meeting.getUser().getId())) {
+            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_MEMBER_MANAGEMENT);
+        }
+
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+        Long meetingUserId = meetingUser.getId();
+        if (meetingUser.getStatus().equals(Status.REQUESTED)) {
+            meetingUserRepository.deleteById(meetingUserId);
+        } else {
+            throw new BusinessException(MeetingError.NOT_A_PARTICIPATING_MEMBER);
+        }
+
+        return new RejectMeetingResponse(meetingId, userId);
     }
 }
