@@ -80,4 +80,13 @@ public class MeetingController implements MeetingControllerSwagger {
         meetingService.deleteMeeting(token, meetingId);
         return ResponseDto.of(meetingId, "Successfully deleted the meeting.");
     }
+
+    @DeleteMapping("/{meetingId}/cancel")
+    public ResponseDto<CancelJoinMeetingResponse> cancelJoinMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId
+    ) {
+        CancelJoinMeetingResponse cancelJoinMeetingResponse = meetingService.cancelJoinMeeting(token, meetingId);
+        return ResponseDto.of(cancelJoinMeetingResponse, "Your join request has been successfully cancelled.");
+    }
 }
