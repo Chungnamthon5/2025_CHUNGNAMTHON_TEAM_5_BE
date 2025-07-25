@@ -36,6 +36,16 @@ public class MeetingController implements MeetingControllerSwagger {
         return ResponseDto.of(joinMeetingResponse, "You have successfully applied to join the group.");
     }
 
+    @PostMapping("/{meetingId}/approve/{userId}")
+    public ResponseDto<ApproveJoinMeetingResponse> approveJoinMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId,
+            @PathVariable("userId") Long userId
+    ) {
+        ApproveJoinMeetingResponse approveJoinMeetingResponse = meetingService.approveJoinMeeting(token, meetingId, userId);
+        return ResponseDto.of(approveJoinMeetingResponse, "The user has been approved to join the meeting.");
+    }
+
     @GetMapping
     public ResponseDto<List<MeetingListResponse>> meetingList(
             @RequestHeader(name = "Authorization", required = false) String token

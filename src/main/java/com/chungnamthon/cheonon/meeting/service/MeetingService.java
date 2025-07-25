@@ -74,6 +74,12 @@ public class MeetingService {
         return new CreateMeetingResponse(meeting.getId());
     }
 
+    /**
+     * 모임 가입 신청 메서드
+     * @param token
+     * @param meetingId
+     * @return JoinMeetingResponse (meetingId)
+     */
     @Transactional
     public JoinMeetingResponse joinMeeting(String token, Long meetingId) {
         Long userId = jwtUtil.getUserIdFromToken(token);
@@ -99,6 +105,27 @@ public class MeetingService {
         meetingUserRepository.save(meetingUser);
 
         return new JoinMeetingResponse(meetingId);
+    }
+
+    @Transactional
+    public ApproveJoinMeetingResponse approveJoinMeeting(String token, Long meetingId, Long userId) {
+        Long hostId = jwtUtil.getUserIdFromToken(token);
+
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        if (!hostId.equals(meeting.getUser().getId())) {
+            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_MEMBER_MANAGEMENT);
+        }
+
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+        if (meetingUser.getStatus().equals(Status.REQUESTED)) {
+            meetingUser.approveJoin(Status.PARTICIPATING);
+        } else {
+            throw new BusinessException(MeetingError.NOT_A_PARTICIPATING_MEMBER);
+        }
+
+        return new ApproveJoinMeetingResponse(meetingId, userId);
     }
 
     /**
