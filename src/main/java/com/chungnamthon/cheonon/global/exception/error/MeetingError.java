@@ -19,7 +19,9 @@ public enum MeetingError implements BaseError {
     KICKED_USER_CANNOT_REJOIN(HttpStatus.FORBIDDEN, "강퇴당한 모임에는 다시 참여할 수 없습니다."),
     INVALID_JOIN_REQUEST_STATE(HttpStatus.BAD_REQUEST, "이미 참여 중이거나, 신청하지 않은 모임입니다."),
     NOT_JOINED_MEETING(HttpStatus.FORBIDDEN, "참여하고 있지 않은 모임입니다."),
-    HOST_CANNOT_LEAVE_MEETING(HttpStatus.FORBIDDEN, "호스트는 모임을 탈퇴할 수 없습니다. 모임을 삭제해 주세요.");
+    HOST_CANNOT_LEAVE_MEETING(HttpStatus.FORBIDDEN, "호스트는 모임을 탈퇴할 수 없습니다. 모임을 삭제해 주세요."),
+    FORBIDDEN_MEETING_MEMBER_MANAGEMENT(HttpStatus.FORBIDDEN, "본인이 생성한 모임의 멤버만 관리할 수 있습니다."),
+    NOT_A_PARTICIPATING_MEMBER(HttpStatus.FORBIDDEN, "해당 모임에 참여 중인 멤버가 아닙니다.");
 
     private final HttpStatus httpStatus;
     private final String message;

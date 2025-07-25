@@ -172,6 +172,102 @@ public interface MeetingControllerSwagger {
             @PathVariable("meetingId") Long meetingId
     );
 
+    @PostMapping("/{meetingId}/approve/{userId}")
+    @Operation(
+            summary = "모임 가입 신청 승인",
+            description = "호스트가 신청자의 가입을 승인합니다. 신청 상태가 'REQUESTED'인 경우에만 승인됩니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "가입 승인 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "가입 승인 성공 응답 예시",
+                                            value = """
+                            {
+                              "timeStamp": "2025-07-25T22:45:00",
+                              "message": "The user has been approved to join the meeting.",
+                              "data": {
+                                "meetingId": 1,
+                                "approvedUserId": 3
+                              }
+                            }
+                            """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "호스트가 아님 / 승인 권한 없음",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "호스트 권한 없음",
+                                            value = """
+                            {
+                              "httpStatus": "FORBIDDEN",
+                              "message": "본인이 생성한 모임의 멤버만 관리할 수 있습니다.",
+                              "timeStamp": "2025-07-25T22:46:00"
+                            }
+                            """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "잘못된 신청 상태",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "승인 불가 상태",
+                                            value = """
+                            {
+                              "httpStatus": "BAD_REQUEST",
+                              "message": "해당 모임에 참여 중인 멤버가 아닙니다.",
+                              "timeStamp": "2025-07-25T22:47:00"
+                            }
+                            """
+                                    )
+                            )
+                    )
+            },
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @Parameter(
+            name = "Authorization",
+            description = "JWT 토큰 (Bearer 방식)",
+            required = true,
+            in = ParameterIn.HEADER,
+            schema = @Schema(type = "string", format = "jwt"),
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
+    @Parameter(
+            name = "meetingId",
+            description = "가입을 승인할 모임 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "1"
+    )
+    @Parameter(
+            name = "userId",
+            description = "가입을 승인할 사용자 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "3"
+    )
+    ResponseDto<ApproveJoinMeetingResponse> approveJoinMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId,
+            @PathVariable("userId") Long userId
+    );
+
+
     @GetMapping
     @Operation(
             summary = "모임 리스트 조회",
