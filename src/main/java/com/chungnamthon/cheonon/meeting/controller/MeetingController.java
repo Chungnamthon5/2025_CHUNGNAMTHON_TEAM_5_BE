@@ -108,4 +108,14 @@ public class MeetingController implements MeetingControllerSwagger {
         LeaveMeetingResponse leaveMeetingResponse = meetingService.leaveMeeting(token, meetingId);
         return ResponseDto.of(leaveMeetingResponse, "You have successfully left the meeting.");
     }
+
+    @DeleteMapping("/{meetingId}/reject/{userId}")
+    public ResponseDto<RejectMeetingResponse> rejectJoinMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId,
+            @PathVariable("userId") Long userId
+    ) {
+        RejectMeetingResponse rejectMeetingResponse = meetingService.rejectMeeting(token, meetingId, userId);
+        return ResponseDto.of(rejectMeetingResponse, "The user has been approved to join the meeting.");
+    }
 }
