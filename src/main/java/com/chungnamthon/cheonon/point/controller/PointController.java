@@ -14,7 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/points")
 @RequiredArgsConstructor
-public class PointController {
+public class PointController implements PointControllerSwagger {
 
     private final PointService pointService;
 
