@@ -29,7 +29,7 @@ public class ReceiptController {
 
     @PostMapping("/{previewId}/confirm")
     public ResponseDto<ReceiptConfirmResponseDto> confirm(
-            @PathVariable Long previewId,
+            @PathVariable(name = "previewId") Long previewId,
             @AuthenticationPrincipal(expression = "userId") Long userId
     ) {
         ReceiptConfirmResponseDto dto = receiptService.confirm(previewId, userId);
