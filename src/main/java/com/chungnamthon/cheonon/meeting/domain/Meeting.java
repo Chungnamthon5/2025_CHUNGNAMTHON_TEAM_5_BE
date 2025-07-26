@@ -7,6 +7,9 @@ import com.chungnamthon.cheonon.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "meeting")
 @Builder
@@ -38,6 +41,9 @@ public class Meeting extends BaseEntity {
 
     @Column(name = "image_url")
     private String imageUrl;
+
+    @OneToMany(mappedBy = "meeting", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MeetingUser> meetingUsers = new ArrayList<>();
 
     public void updateTitle(String title) {
         this.title = title;
