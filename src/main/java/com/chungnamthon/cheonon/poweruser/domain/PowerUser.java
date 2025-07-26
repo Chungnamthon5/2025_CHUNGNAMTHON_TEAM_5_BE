@@ -1,4 +1,4 @@
-package com.chungnamthon.cheonon.point.domain;
+package com.chungnamthon.cheonon.poweruser.domain;
 
 import com.chungnamthon.cheonon.global.domain.BaseEntity;
 import com.chungnamthon.cheonon.user.domain.User;
