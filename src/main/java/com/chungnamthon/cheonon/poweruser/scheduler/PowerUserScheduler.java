@@ -1,6 +1,6 @@
-package com.chungnamthon.cheonon.point.scheduler;
+package com.chungnamthon.cheonon.poweruser.scheduler;
 
-import com.chungnamthon.cheonon.point.service.PowerUserService;
+import com.chungnamthon.cheonon.poweruser.service.PowerUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
