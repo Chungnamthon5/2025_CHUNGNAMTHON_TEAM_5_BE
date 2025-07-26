@@ -3,6 +3,7 @@ package com.chungnamthon.cheonon.meeting.service;
 import com.chungnamthon.cheonon.auth.jwt.JwtUtil;
 import com.chungnamthon.cheonon.global.exception.BusinessException;
 import com.chungnamthon.cheonon.global.exception.error.AuthenticationError;
+import com.chungnamthon.cheonon.global.exception.error.CommonError;
 import com.chungnamthon.cheonon.global.exception.error.MeetingError;
 import com.chungnamthon.cheonon.meeting.domain.Meeting;
 import com.chungnamthon.cheonon.meeting.domain.MeetingUser;
@@ -195,6 +196,57 @@ public class MeetingService {
         }
 
         return meetingListResponses;
+    }
+
+    /**
+     * 내 모임 리스트 조회
+     * @param token
+     * @param meetingStatus
+     * @return List<MyMeetingListResponse>
+     */
+    public List<MyMeetingListResponse> getMyMeetingList(String token, String meetingStatus) {
+        Long userId = jwtUtil.getUserIdFromToken(token);
+
+        List<MeetingUser> meetingUsers;
+        switch (meetingStatus) {
+            case "approved":
+                meetingUsers = meetingUserRepository.findByUserIdAndStatusIn(
+                        userId, List.of(Status.HOST, Status.PARTICIPATING)
+                );
+                break;
+            case "pending":
+                meetingUsers = meetingUserRepository.findByUserIdAndStatus(userId, Status.REQUESTED);
+                break;
+            default:
+                throw new BusinessException(CommonError.INVALID_PARAMETER);
+        }
+
+        List<MyMeetingListResponse> myMeetingListResponses = new ArrayList<>();
+        for (MeetingUser meetingUser : meetingUsers) {
+            Long meetingId = meetingUser.getMeeting().getId();
+            Meeting meeting = meetingRepository.findById(meetingId)
+                    .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+            Status status = null;
+            if (meetingUser.getStatus().equals(Status.HOST)) {
+                status = Status.HOST;
+            } else if (meetingUser.getStatus().equals(Status.PARTICIPATING)) {
+                status = Status.PARTICIPATING;
+            } else if (meetingUser.getStatus().equals(Status.REQUESTED)) {
+                status = Status.REQUESTED;
+            }
+            boolean isHost = meetingUser.getStatus().equals(Status.HOST);
+            String title = meeting.getTitle();
+            String description = meeting.getDescription();
+            Location location = meeting.getLocation();
+            Schedule schedule = meeting.getSchedule();
+            String imageUrl = meeting.getImageUrl();
+
+            MyMeetingListResponse myMeetingListResponse
+                    = new MyMeetingListResponse(meetingId, status, isHost, title, description, location, schedule, imageUrl);
+            myMeetingListResponses.add(myMeetingListResponse);
+        }
+        return myMeetingListResponses;
     }
 
     /**

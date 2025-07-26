@@ -437,6 +437,96 @@ public interface MeetingControllerSwagger {
             @RequestHeader(name = "Authorization", required = false) String token
     );
 
+    @Operation(
+            summary = "내 모임 리스트 조회",
+            description = """
+            내 모임 중에서 상태값(status)에 따라 리스트를 조회합니다.
+
+            - `approved`: 참여 중인 모임 (HOST 또는 PARTICIPATING 상태)
+            - `pending`: 가입 요청한 모임 (REQUESTED 상태)
+            """,
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "내 모임 리스트 조회 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "내 모임 리스트 예시",
+                                            value = """
+                            {
+                              "timeStamp": "2025-07-26T19:00:00",
+                              "message": "Successfully retrieved my meeting list.",
+                              "data": [
+                                {
+                                  "meetingId": 1,
+                                  "status": "HOST",
+                                  "isHost": true,
+                                  "title": "천안역 커피 모임",
+                                  "description": "같이 커피 마셔요!",
+                                  "location": "MOKCHEON",
+                                  "schedule": "WEEKEND",
+                                  "imageUrl": "https://example.com/image.jpg"
+                                },
+                                {
+                                  "meetingId": 2,
+                                  "status": "PARTICIPATING",
+                                  "isHost": false,
+                                  "title": "러닝 크루",
+                                  "description": "평일 아침 러닝",
+                                  "location": "SEOBUK",
+                                  "schedule": "WEEKDAY",
+                                  "imageUrl": "https://example.com/image2.jpg"
+                                }
+                              ]
+                            }
+                            """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "유효하지 않은 파라미터",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "잘못된 status 값",
+                                            value = """
+                            {
+                              "httpStatus": "NOT_FOUND",
+                              "message": "유효하지 않은 파라미터입니다.",
+                              "timeStamp": "2025-07-26T19:01:00"
+                            }
+                            """
+                                    )
+                            )
+                    )
+            },
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @Parameter(
+            name = "Authorization",
+            description = "JWT 토큰 (Bearer 방식)",
+            required = true,
+            in = ParameterIn.HEADER,
+            schema = @Schema(type = "string", format = "jwt"),
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
+    @Parameter(
+            name = "status",
+            description = "조회할 모임 상태 (approved 또는 pending)",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "string", allowableValues = {"approved", "pending"})
+    )
+    @GetMapping("/me/{status}")
+    ResponseDto<List<MyMeetingListResponse>> myMeetingList(
+            @RequestHeader("Authorization") String token,
+            @PathVariable(name = "status") String status
+    );
+
     @GetMapping("/{meetingId}")
     @Operation(
             summary = "모임 상세 정보 조회",
