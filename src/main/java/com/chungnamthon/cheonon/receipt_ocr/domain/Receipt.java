@@ -1,0 +1,44 @@
+package com.chungnamthon.cheonon.receipt_ocr.domain;
+
+import com.chungnamthon.cheonon.map.domain.Merchant;
+import com.chungnamthon.cheonon.point.domain.Point;
+import com.chungnamthon.cheonon.user.domain.User;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "receipt")
+@Getter
+@Setter
+@NoArgsConstructor
+public class Receipt {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "preview_id", nullable = false)
+    private ReceiptPreview preview;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "merchant_id", nullable = false)
+    private Merchant merchant;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "point_id", nullable = false)
+    private Point point;
+
+    @Column(name = "visit_datetime", nullable = false)
+    private LocalDateTime visitDateTime;
+
+    @Column(updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
+}
