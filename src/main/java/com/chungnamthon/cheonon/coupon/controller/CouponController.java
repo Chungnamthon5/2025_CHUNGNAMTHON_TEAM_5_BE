@@ -1,9 +1,11 @@
 package com.chungnamthon.cheonon.coupon.controller;
 
 import com.chungnamthon.cheonon.coupon.dto.request.ExchangeCouponRequest;
+import com.chungnamthon.cheonon.coupon.dto.request.UseCouponRequest;
 import com.chungnamthon.cheonon.coupon.dto.response.CouponListResponse;
 import com.chungnamthon.cheonon.coupon.dto.response.ExchangeCouponResponse;
 import com.chungnamthon.cheonon.coupon.dto.response.MyCouponListResponse;
+import com.chungnamthon.cheonon.coupon.dto.response.UseCouponResponse;
 import com.chungnamthon.cheonon.coupon.service.CouponService;
 import com.chungnamthon.cheonon.global.payload.ResponseDto;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,15 @@ public class CouponController implements CouponControllerSwagger {
     ) {
         ExchangeCouponResponse exchangeCouponResponse = couponService.exchangeCoupon(token, exchangeCouponRequest);
         return ResponseDto.of(exchangeCouponResponse, "Coupon successfully exchanged.");
+    }
+
+    @PostMapping("/use")
+    public ResponseDto<UseCouponResponse> useCoupon(
+            @RequestHeader("Authorization") String token,
+            @RequestBody UseCouponRequest useCouponRequest
+    ) {
+        UseCouponResponse useCouponResponse = couponService.useCoupon(token, useCouponRequest);
+        return ResponseDto.of(useCouponResponse, "Coupon successfully used.");
     }
 
     @GetMapping

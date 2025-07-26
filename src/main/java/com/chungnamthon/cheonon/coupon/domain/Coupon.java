@@ -30,4 +30,7 @@ public class Coupon extends BaseEntity {
 
     @Column(name = "image_url")
     String ImageUrl;
+
+    @Column(name = "confirm_code")
+    Long confirmCode;
 }
