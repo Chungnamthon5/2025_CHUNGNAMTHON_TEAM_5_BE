@@ -6,10 +6,10 @@ import org.springframework.http.HttpStatus;
 
 @Getter
 @RequiredArgsConstructor
-public enum CouponError implements BaseError {
+public enum PointError implements BaseError {
 
-    COUPON_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 쿠폰입니다."),
-    COUPON_ALREADY_ISSUED(HttpStatus.BAD_REQUEST, "이미 발급받은 쿠폰입니다.");
+    POINT_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 포인트입니다."),
+    INSUFFICIENT_POINT(HttpStatus.BAD_REQUEST, "포인트가 부족합니다.");
 
     private final HttpStatus httpStatus;
     private final String message;
