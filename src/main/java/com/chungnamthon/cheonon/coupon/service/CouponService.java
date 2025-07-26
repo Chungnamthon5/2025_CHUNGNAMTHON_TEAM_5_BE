@@ -142,7 +142,7 @@ public class CouponService {
 
     public List<MyCouponListResponse> getMyCouponList(String token) {
         Long userId = jwtUtil.getUserIdFromToken(token);
-        List<CouponUser> myCoupons = couponUserRepository.findByUserId(userId);
+        List<CouponUser> myCoupons = couponUserRepository.findByUserIdAndIsUsedFalse(userId);
 
         List<Coupon> coupons = new ArrayList<>();
         for (CouponUser myCoupon : myCoupons) {

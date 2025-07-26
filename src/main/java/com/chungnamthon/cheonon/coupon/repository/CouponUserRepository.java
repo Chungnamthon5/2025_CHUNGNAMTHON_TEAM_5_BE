@@ -6,7 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.List;
 
 public interface CouponUserRepository extends JpaRepository<CouponUser, Long> {
-    List<CouponUser> findByUserId(Long userId);
+    List<CouponUser> findByUserIdAndIsUsedFalse(Long userId);
 
     int countByUser_Id(Long userId);
 
