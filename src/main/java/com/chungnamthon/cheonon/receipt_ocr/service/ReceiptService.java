@@ -1,7 +1,7 @@
 package com.chungnamthon.cheonon.receipt_ocr.service;
 
-import com.chungnamthon.cheonon.map.domain.Merchant;
-import com.chungnamthon.cheonon.map.repository.MerchantRepository;
+import com.chungnamthon.cheonon.local_merchant.domain.Merchant;
+import com.chungnamthon.cheonon.local_merchant.repository.MerchantRepository;
 import com.chungnamthon.cheonon.point.domain.Point;
 import com.chungnamthon.cheonon.point.domain.value.PaymentType;
 import com.chungnamthon.cheonon.point.repository.PointRepository;
@@ -21,7 +21,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -64,8 +63,8 @@ public class ReceiptService {
         Matcher numberMatcher = numberPattern.matcher(text);
         Merchant merchant = null;
         while (numberMatcher.find()) {
-            long potentialId = Long.parseLong(numberMatcher.group());
-            Optional<Merchant> opt = merchantRepo.findById(potentialId);
+            String potentialId = numberMatcher.group();
+            Optional<Merchant> opt = merchantRepo.findByMerchantSeq(potentialId);
             if (opt.isPresent()) {
                 merchant = opt.get();
                 break;
@@ -89,7 +88,9 @@ public class ReceiptService {
         if (mTime.find()) {
             time = LocalTime.parse(mTime.group(1));
         }
-        LocalDateTime visitDateTime = LocalDateTime.of(date, time);
+        // Todo 수정 ㅎㅎ
+        /*LocalDate visitDate = LocalDate.of(date);
+        LocalTime visitTime = LocalTime.of(time);*/
 
         // 5) User 검증
         User user = userRepo.findById(userId)
@@ -99,7 +100,9 @@ public class ReceiptService {
         ReceiptPreview preview = new ReceiptPreview();
         preview.setUser(user);
         preview.setMerchant(merchant);
-        preview.setVisitDateTime(visitDateTime);
+        // Todo 수정 ㅎㅎ
+        /*preview.setVisitDate(visitDate);
+        preview.setVisitTime(visitTime);*/
         preview = previewRepo.save(preview);
 
         // 7) DTO 반환
@@ -120,8 +123,8 @@ public class ReceiptService {
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
 
-        if (receiptRepo.existsByMerchantAndUserAndVisitDateTime(
-                preview.getMerchant(), user, preview.getVisitDateTime())) {
+        if (receiptRepo.existsByMerchantAndUserAndVisitDateAndVisitTime(
+                (preview.getMerchant()), user, preview.getVisitDate(), preview.getVisitTime())) {
             throw new IllegalStateException("Receipt already confirmed for this visit.");
         }
 
@@ -144,7 +147,8 @@ public class ReceiptService {
         receipt.setUser(user);
         receipt.setMerchant(preview.getMerchant());
         receipt.setPoint(p);
-        receipt.setVisitDateTime(preview.getVisitDateTime());
+        receipt.setVisitDate(preview.getVisitDate());
+        receipt.setVisitTime(preview.getVisitTime());
         receipt = receiptRepo.save(receipt);
 
         return ReceiptConfirmResponseDto.builder()
@@ -152,7 +156,8 @@ public class ReceiptService {
                 .userId(user.getId())
                 .merchantId(preview.getMerchant().getId())
                 .pointId(p.getId())
-                .visitDateTime(preview.getVisitDateTime())
+                .visitDate(preview.getVisitDate())
+                .visitTime(preview.getVisitTime())
                 .createdAt(receipt.getCreatedAt())
                 .currentPoint(current)
                 .build();

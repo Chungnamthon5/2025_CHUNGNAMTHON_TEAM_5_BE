@@ -1,6 +1,6 @@
 package com.chungnamthon.cheonon.receipt_ocr.domain;
 
-import com.chungnamthon.cheonon.map.domain.Merchant;
+import com.chungnamthon.cheonon.local_merchant.domain.Merchant;
 import com.chungnamthon.cheonon.point.domain.Point;
 import com.chungnamthon.cheonon.user.domain.User;
 import jakarta.persistence.*;
@@ -8,7 +8,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 @Entity
 @Table(name = "receipt")
@@ -36,8 +38,11 @@ public class Receipt {
     @JoinColumn(name = "point_id", nullable = false)
     private Point point;
 
-    @Column(name = "visit_datetime", nullable = false)
-    private LocalDateTime visitDateTime;
+    @Column(name = "visit_date", nullable = false)
+    private LocalDate visitDate;
+
+    @Column(name = "visit_time", nullable = false)
+    private LocalTime visitTime;
 
     @Column(updatable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
