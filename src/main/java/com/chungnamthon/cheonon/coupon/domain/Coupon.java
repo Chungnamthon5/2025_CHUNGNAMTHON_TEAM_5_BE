@@ -5,6 +5,8 @@ import com.chungnamthon.cheonon.map.domain.Merchant;
 import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.time.LocalDate;
+
 @Entity
 @Table(name = "coupon")
 @Getter
@@ -22,6 +24,9 @@ public class Coupon extends BaseEntity {
 
     @Column(name = "expiration_period")
     Integer expirationPeriod;
+
+    @Column(name = "expiration_date")
+    LocalDate expirationDate;
 
     @Column(name = "image_url")
     String ImageUrl;
