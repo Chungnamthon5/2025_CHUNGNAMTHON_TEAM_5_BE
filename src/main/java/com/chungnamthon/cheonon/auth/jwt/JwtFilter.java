@@ -1,5 +1,6 @@
 package com.chungnamthon.cheonon.auth.jwt;
 
+import com.chungnamthon.cheonon.global.security.CustomUserDetails;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,8 +33,9 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (token != null && jwtUtil.validateToken(token)) {
             Long userId = jwtUtil.getUserIdFromToken(token);
+            CustomUserDetails customUserDetails = new CustomUserDetails(userId);
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+                    new UsernamePasswordAuthenticationToken(customUserDetails, null, Collections.emptyList());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }
