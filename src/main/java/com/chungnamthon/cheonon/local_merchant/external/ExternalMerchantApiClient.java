@@ -85,7 +85,7 @@ public class ExternalMerchantApiClient {
                 }
 
                 result.add(LocalMerchantDto.builder()
-                        .merchantSeq(BigInteger.valueOf(node.get("seq").asLong()))
+                        .merchantSeq(String.valueOf(BigInteger.valueOf(node.get("seq").asLong())))
                         .name(node.get("simpleNm").asText())
                         .category(categoryMap.getOrDefault(bizType, "기타"))
                         .address(address)

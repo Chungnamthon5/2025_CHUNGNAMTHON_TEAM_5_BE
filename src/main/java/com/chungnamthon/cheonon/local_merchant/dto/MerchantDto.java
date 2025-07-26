@@ -1,15 +1,13 @@
-package com.chungnamthon.cheonon.map.dto;
+package com.chungnamthon.cheonon.local_merchant.dto;
 
 import lombok.Builder;
 import lombok.Getter;
-
-import java.math.BigDecimal;
 
 @Getter
 @Builder
 public class MerchantDto {
     private Long id;
-    private BigDecimal merchantSeq;
+    private String merchantSeq;
     private String name;
     private String address;
     private String tel;
