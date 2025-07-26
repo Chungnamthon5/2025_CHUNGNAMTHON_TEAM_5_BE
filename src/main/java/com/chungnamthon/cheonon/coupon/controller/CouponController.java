@@ -1,14 +1,13 @@
 package com.chungnamthon.cheonon.coupon.controller;
 
+import com.chungnamthon.cheonon.coupon.dto.request.ExchangeCouponRequest;
 import com.chungnamthon.cheonon.coupon.dto.response.CouponListResponse;
+import com.chungnamthon.cheonon.coupon.dto.response.ExchangeCouponResponse;
 import com.chungnamthon.cheonon.coupon.dto.response.MyCouponListResponse;
 import com.chungnamthon.cheonon.coupon.service.CouponService;
 import com.chungnamthon.cheonon.global.payload.ResponseDto;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -18,6 +17,15 @@ import java.util.List;
 public class CouponController implements CouponControllerSwagger {
 
     private final CouponService couponService;
+
+    @PostMapping("/exchange")
+    public ResponseDto<ExchangeCouponResponse> exchangeCoupon(
+            @RequestHeader("Authorization") String token,
+            @RequestBody ExchangeCouponRequest exchangeCouponRequest
+    ) {
+        ExchangeCouponResponse exchangeCouponResponse = couponService.exchangeCoupon(token, exchangeCouponRequest);
+        return ResponseDto.of(exchangeCouponResponse, "Coupon successfully exchanged.");
+    }
 
     @GetMapping
     public ResponseDto<List<CouponListResponse>> couponList() {
