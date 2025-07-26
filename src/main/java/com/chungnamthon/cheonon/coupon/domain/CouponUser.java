@@ -35,4 +35,8 @@ public class CouponUser extends BaseEntity {
 
     @Column(name = "is_used")
     private boolean isUsed;
+
+    public void usedCoupon() {
+        this.isUsed = true;
+    }
 }

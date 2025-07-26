@@ -4,9 +4,11 @@ import com.chungnamthon.cheonon.auth.jwt.JwtUtil;
 import com.chungnamthon.cheonon.coupon.domain.Coupon;
 import com.chungnamthon.cheonon.coupon.domain.CouponUser;
 import com.chungnamthon.cheonon.coupon.dto.request.ExchangeCouponRequest;
+import com.chungnamthon.cheonon.coupon.dto.request.UseCouponRequest;
 import com.chungnamthon.cheonon.coupon.dto.response.CouponListResponse;
 import com.chungnamthon.cheonon.coupon.dto.response.ExchangeCouponResponse;
 import com.chungnamthon.cheonon.coupon.dto.response.MyCouponListResponse;
+import com.chungnamthon.cheonon.coupon.dto.response.UseCouponResponse;
 import com.chungnamthon.cheonon.coupon.repository.CouponRepository;
 import com.chungnamthon.cheonon.coupon.repository.CouponUserRepository;
 import com.chungnamthon.cheonon.global.exception.BusinessException;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -88,6 +91,34 @@ public class CouponService {
         } else { // 포인트 부족 예외 처리
             throw new BusinessException(PointError.INSUFFICIENT_POINT);
         }
+    }
+
+    @Transactional
+    public UseCouponResponse useCoupon(String token, UseCouponRequest useCouponRequest) {
+        Long userId = jwtUtil.getUserIdFromToken(token);
+
+        Long couponId = useCouponRequest.couponId();
+        Coupon coupon = couponRepository.findById(couponId)
+                .orElseThrow(() -> new BusinessException(CouponError.COUPON_NOT_FOUND));
+
+        CouponUser couponUser = couponUserRepository.findByUserIdAndCouponId(userId, couponId);
+
+        if (couponUser.isUsed()) {
+            throw new BusinessException(CouponError.COUPON_ALREADY_USED);
+        }
+
+        Long requestConfirmCode = useCouponRequest.confirmCode();
+        Long confirmCode = coupon.getConfirmCode();
+        if (!requestConfirmCode.equals(confirmCode)) {
+            throw new BusinessException(CouponError.COUPON_CODE_MISMATCH);
+        }
+
+        couponUser.usedCoupon();
+
+        String title = coupon.getTitle();
+        LocalDateTime usedAt = couponUser.getUpdatedAt();
+
+        return new UseCouponResponse(couponId, title, usedAt);
     }
 
     public List<CouponListResponse> getCouponList() {
