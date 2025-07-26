@@ -1,4 +1,4 @@
-package com.chungnamthon.cheonon.point.repository;
+package com.chungnamthon.cheonon.poweruser;
 
 import com.chungnamthon.cheonon.poweruser.domain.PowerUser;
 import org.springframework.data.jpa.repository.JpaRepository;
