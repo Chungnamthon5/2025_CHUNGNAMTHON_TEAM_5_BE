@@ -13,7 +13,7 @@ import java.util.List;
 public class MerchantApiFetchService {
 
     private final ExternalMerchantApiClient apiClient;
-    private final LocalMerchantService localMerchantService;
+    private final MerchantService merchantService;
 
     private static final List<String> BIZ_TYPE_LIST = List.of(
             "1001", "1002", "1003", "1004", "1005",
@@ -46,7 +46,7 @@ public class MerchantApiFetchService {
                     for (var dto : dtoList) {
                         try {
                             // 저장 시도 (중복이면 자동 스킵 또는 좌표 업데이트)
-                            localMerchantService.saveMerchant(dto);
+                            merchantService.saveMerchant(dto);
                             totalSaved++;
 
                         } catch (Exception e) {
