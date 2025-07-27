@@ -175,7 +175,7 @@ public class MeetingService {
      * @return meetingListResponse (전체 리스트)
      */
     public List<MeetingListResponse> getMeetingList(String token) {
-        List<Meeting> meetingList = meetingRepository.findAll();
+        List<Meeting> meetingList = meetingRepository.findAllByOrderByCreatedAtDesc();
 
         Long userId = null;
         if (token != null) {

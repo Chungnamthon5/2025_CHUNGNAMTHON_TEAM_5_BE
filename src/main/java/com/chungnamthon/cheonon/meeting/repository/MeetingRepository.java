@@ -9,4 +9,6 @@ import java.util.List;
 @Repository
 public interface MeetingRepository extends JpaRepository<Meeting, Long> {
     List<Meeting> findTop3ByOrderByCreatedAtDesc();
+
+    List<Meeting> findAllByOrderByCreatedAtDesc();
 }
