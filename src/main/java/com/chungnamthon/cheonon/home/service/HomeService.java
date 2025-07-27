@@ -36,7 +36,7 @@ public class HomeService {
 
         List<AffiliateHomePreviewResponse> topAffiliates;
         try {
-            topAffiliates = affiliateService.getTop4Affiliates();
+            topAffiliates = affiliateService.getAffiliateList();
         } catch (Exception e) {
             log.error("홈화면 제휴업체 데이터 조회 실패: {}", e.getMessage());
             topAffiliates = List.of();
