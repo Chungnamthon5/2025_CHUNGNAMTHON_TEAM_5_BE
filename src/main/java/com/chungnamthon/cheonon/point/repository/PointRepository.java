@@ -15,7 +15,6 @@ import java.util.Optional;
 @Repository
 public interface PointRepository extends JpaRepository<Point, Long> {
     Optional<Point> findFirstByUserOrderByCreatedAtDesc(User user);
-    List<Point> findByUserId(Long userId);
 
     Optional<Point> findTopByUserIdOrderByCreatedAtDesc(Long userId);
 
@@ -29,4 +28,6 @@ public interface PointRepository extends JpaRepository<Point, Long> {
     ORDER BY SUM(p.changedPoint) DESC
 """)
     List<Object[]> findTopUsersByTotalPoint(Pageable pageable);
+
+    List<Point> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

@@ -21,7 +21,7 @@ public class PointService {
 
     public List<PointHistoryResponse> getMyPointHistory(String token) {
         Long userId = jwtUtil.getUserIdFromToken(token);
-        List<Point> pointHistories = pointRepository.findByUserId(userId);
+        List<Point> pointHistories = pointRepository.findByUserIdOrderByCreatedAtDesc(userId);
 
         List<PointHistoryResponse> myPointHistory = new ArrayList<>();
         for (Point point : pointHistories) {
