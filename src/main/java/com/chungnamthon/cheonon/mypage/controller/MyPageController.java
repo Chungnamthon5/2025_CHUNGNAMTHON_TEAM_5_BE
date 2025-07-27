@@ -15,8 +15,10 @@ public class MyPageController {
     private final MyPageService myPageService;
 
     @GetMapping
-    public ResponseDto<MyPageResponse> getMyPage(@AuthenticationPrincipal Long userId) {
-        MyPageResponse response = myPageService.getMyPageInfo(userId);
+    public ResponseDto<MyPageResponse> getMyPage(
+            @RequestHeader("Authorization") String token
+    ) {
+        MyPageResponse response = myPageService.getMyPageInfo(token);
         return ResponseDto.of(response, "마이페이지 정보 조회 성공");
     }
 }

@@ -1,5 +1,6 @@
 package com.chungnamthon.cheonon.mypage.service;
 
+import com.chungnamthon.cheonon.auth.jwt.JwtUtil;
 import com.chungnamthon.cheonon.coupon.repository.CouponUserRepository;
 import com.chungnamthon.cheonon.mypage.dto.MyPageResponse;
 import com.chungnamthon.cheonon.point.repository.PointRepository;
@@ -15,8 +16,10 @@ public class MyPageService {
     private final UserRepository userRepository;
     private final PointRepository pointRepository;
     private final CouponUserRepository couponUserRepository;
+    private final JwtUtil jwtUtil;
 
-    public MyPageResponse getMyPageInfo(Long userId) {
+    public MyPageResponse getMyPageInfo(String token) {
+        Long userId = jwtUtil.getUserIdFromToken(token);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
 
