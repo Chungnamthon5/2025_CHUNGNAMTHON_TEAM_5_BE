@@ -54,7 +54,8 @@ public class SecurityConfig {
                                 "/api/meetings",
                                 "/api/meetings/{meetingId}",
                                 "/api/coupons",
-                                "/actuator/health"
+                                "/actuator/health",
+                                "/api/home/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .anyRequest().authenticated()
