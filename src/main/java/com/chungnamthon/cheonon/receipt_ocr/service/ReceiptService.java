@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
@@ -39,15 +40,14 @@ public class ReceiptService {
     private final PointRepository pointRepo;
 
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4}[.\\-/]\\d{1,2}[.\\-/]\\d{1,2})");
-    // 초가 반드시 포함된 시:분:초 형태만 매칭
-    private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{1,2}:\\d{2}:\\d{2})");
+    private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{1,2}:[\\s]*\\d{2}(?::[\\s]*\\d{2})?)");
     // 코나 결제 키워드 목록
     private static final List<String> REQUIRED_CARD_KEYWORDS = List.of("코나", "코나카드", "KONAI", "KONA");
 
     public ReceiptPreviewResponseDto preview(MultipartFile file, Long userId) throws Exception {
         String text = ocrClient.parseText(file.getBytes());
 
-        // 1) Cheonan 주소 포함 여부 검증
+        // 1) Cheonan 주소 포함 여부 검증x
         if (!text.contains("천안")) {
             throw new IllegalArgumentException("Receipt must be for a store in Cheonan.");
         }
@@ -82,15 +82,18 @@ public class ReceiptService {
                     .replace('.', '-')
                     .replace('/', '-'));
         }
-        // 시:분:초 형식만 반영, 없으면 현재 시각 유지
-        LocalTime time = LocalTime.now();
+        LocalTime time;
         Matcher mTime = TIME_PATTERN.matcher(text);
         if (mTime.find()) {
-            time = LocalTime.parse(mTime.group(1));
+            // 매칭 그룹에서 모든 공백(스페이스·탭·줄바꿈) 제거
+            String timeStr = mTime.group(1).replaceAll("\\s+", "");
+            if (timeStr.length() == 5) {  // HH:mm 형식일 경우 초 추가
+                timeStr += ":00";
+            }
+            time = LocalTime.parse(timeStr);
+        } else {
+            throw new IllegalArgumentException("영수증에서 방문 시간을 찾을 수 없습니다.");
         }
-        // Todo 수정 ㅎㅎ
-        /*LocalDate visitDate = LocalDate.of(date);
-        LocalTime visitTime = LocalTime.of(time);*/
 
         // 5) User 검증
         User user = userRepo.findById(userId)
@@ -100,9 +103,8 @@ public class ReceiptService {
         ReceiptPreview preview = new ReceiptPreview();
         preview.setUser(user);
         preview.setMerchant(merchant);
-        // Todo 수정 ㅎㅎ
-        /*preview.setVisitDate(visitDate);
-        preview.setVisitTime(visitTime);*/
+        preview.setVisitDate(date);
+        preview.setVisitTime(time);
         preview = previewRepo.save(preview);
 
         // 7) DTO 반환
@@ -113,7 +115,7 @@ public class ReceiptService {
                 .visitDate(date)
                 .visitTime(time)
                 .address(merchant.getAddress())
-                .point(300)
+                .point(50)
                 .build();
     }
 
@@ -131,7 +133,7 @@ public class ReceiptService {
         int previous = pointRepo.findFirstByUserOrderByCreatedAtDesc(user)
                 .map(Point::getCurrentPoint)
                 .orElse(0);
-        int changed = 300;
+        int changed = 50;
         int current = previous + changed;
 
         Point p = Point.builder()
