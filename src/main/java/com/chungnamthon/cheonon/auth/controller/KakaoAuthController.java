@@ -41,7 +41,7 @@ public class KakaoAuthController {
             TokenResponse tokenResponse = kakaoOauthService.kakaoLogin(code);
 
             String redirectUrl = UriComponentsBuilder
-                    .fromHttpUrl("http://localhost:5173/callback")
+                    .fromHttpUrl("https://2025-chungnamthon-team-5-fe.vercel.app/callback")
                     .queryParam("accessToken", tokenResponse.getAccessToken())
                     .queryParam("refreshToken", tokenResponse.getRefreshToken())
                     .build()
