@@ -2,7 +2,6 @@ package com.chungnamthon.cheonon.map.domain;
 
 import com.chungnamthon.cheonon.global.domain.BaseEntity;
 import jakarta.persistence.*;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,11 +16,17 @@ public class Affiliate extends BaseEntity {
     @Column(name = "merchant_seq")
     private BigDecimal merchantSeq;
 
+    @Column(name = "name")
     private String name;
-    private String address;
-    private String tel;
-    private String category;
 
+    @Column(name = "address")
+    private String address;
+
+    @Column(name = "tel")
+    private String tel;
+
+    @Column(name = "category")
+    private String category;
 
     @Column(name = "latitude")
     private Double latitude;
@@ -29,5 +34,6 @@ public class Affiliate extends BaseEntity {
     @Column(name = "longitude")
     private Double longitude;
 
-
+    @Column(name = "image_url")
+    private String imageUrl;
 }
