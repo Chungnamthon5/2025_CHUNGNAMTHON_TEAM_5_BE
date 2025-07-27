@@ -3,8 +3,6 @@ package com.chungnamthon.cheonon.local_merchant.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.math.BigInteger;
-
 @Entity
 @Table(name = "merchant")
 @Getter
@@ -12,7 +10,7 @@ import java.math.BigInteger;
 @AllArgsConstructor
 @Builder
 @Setter
-public class LocalMerchant {
+public class Merchant {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -20,7 +18,7 @@ public class LocalMerchant {
     private Long id;
 
     @Column(name = "merchant_seq", nullable = false, unique = true)
-    private BigInteger merchantSeq; // decimal(38,0)은 BigInteger가 안전
+    private String merchantSeq;
 
     @Column(name = "name", nullable = false)
     private String name;
@@ -39,4 +37,7 @@ public class LocalMerchant {
 
     @Column(name = "longitude")
     private Double longitude;
+
+    @Column(name = "is_affiliate")
+    private Boolean isAffiliate;      // 제휴 여부
 }

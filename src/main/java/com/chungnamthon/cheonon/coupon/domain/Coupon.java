@@ -1,7 +1,7 @@
 package com.chungnamthon.cheonon.coupon.domain;
 
 import com.chungnamthon.cheonon.global.domain.BaseEntity;
-import com.chungnamthon.cheonon.map.domain.Merchant;
+import com.chungnamthon.cheonon.local_merchant.domain.Merchant;
 import jakarta.persistence.*;
 import lombok.Getter;
 

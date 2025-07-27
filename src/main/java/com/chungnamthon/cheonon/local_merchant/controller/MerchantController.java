@@ -1,8 +1,8 @@
-package com.chungnamthon.cheonon.map.controller;
+package com.chungnamthon.cheonon.local_merchant.controller;
 
 import com.chungnamthon.cheonon.global.payload.ResponseDto;
-import com.chungnamthon.cheonon.map.dto.MerchantDto;
-import com.chungnamthon.cheonon.map.service.MerchantService;
+import com.chungnamthon.cheonon.local_merchant.dto.MerchantDto;
+import com.chungnamthon.cheonon.local_merchant.service.MerchantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

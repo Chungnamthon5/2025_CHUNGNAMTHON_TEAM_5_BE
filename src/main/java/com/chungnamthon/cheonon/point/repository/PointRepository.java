@@ -1,6 +1,7 @@
 package com.chungnamthon.cheonon.point.repository;
 
 import com.chungnamthon.cheonon.point.domain.Point;
+import com.chungnamthon.cheonon.user.domain.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -13,6 +14,7 @@ import java.util.Optional;
 
 @Repository
 public interface PointRepository extends JpaRepository<Point, Long> {
+    Optional<Point> findFirstByUserOrderByCreatedAtDesc(User user);
     List<Point> findByUserId(Long userId);
 
     Optional<Point> findTopByUserIdOrderByCreatedAtDesc(Long userId);
