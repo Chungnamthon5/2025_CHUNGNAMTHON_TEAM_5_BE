@@ -9,7 +9,6 @@ import org.springframework.stereotype.Repository;
 
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +16,8 @@ import java.util.Optional;
 public interface PointRepository extends JpaRepository<Point, Long> {
     Optional<Point> findFirstByUserOrderByCreatedAtDesc(User user);
     List<Point> findByUserId(Long userId);
+
+    Optional<Point> findTopByUserIdOrderByCreatedAtDesc(Long userId);
 
     @Query("SELECT COALESCE(SUM(p.changedPoint), 0) FROM Point p WHERE p.user.id = :userId")
     int sumPointByUserId(@Param("userId") Long userId);

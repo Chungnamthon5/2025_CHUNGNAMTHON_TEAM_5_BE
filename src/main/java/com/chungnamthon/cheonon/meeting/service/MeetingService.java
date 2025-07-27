@@ -3,6 +3,7 @@ package com.chungnamthon.cheonon.meeting.service;
 import com.chungnamthon.cheonon.auth.jwt.JwtUtil;
 import com.chungnamthon.cheonon.global.exception.BusinessException;
 import com.chungnamthon.cheonon.global.exception.error.AuthenticationError;
+import com.chungnamthon.cheonon.global.exception.error.CommonError;
 import com.chungnamthon.cheonon.global.exception.error.MeetingError;
 import com.chungnamthon.cheonon.meeting.domain.Meeting;
 import com.chungnamthon.cheonon.meeting.domain.MeetingUser;
@@ -74,6 +75,12 @@ public class MeetingService {
         return new CreateMeetingResponse(meeting.getId());
     }
 
+    /**
+     * 모임 가입 신청 메서드
+     * @param token
+     * @param meetingId
+     * @return JoinMeetingResponse (meetingId)
+     */
     @Transactional
     public JoinMeetingResponse joinMeeting(String token, Long meetingId) {
         Long userId = jwtUtil.getUserIdFromToken(token);
@@ -81,10 +88,12 @@ public class MeetingService {
                 .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
 
         MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
-        if (meetingUser.getStatus().equals(Status.HOST) || meetingUser.getStatus().equals(Status.PARTICIPATING)) {
-            throw new BusinessException(MeetingError.ALREADY_JOINED_MEETING);
-        } else if (meetingUser.getStatus().equals(Status.KICKED)) {
-            throw new BusinessException(MeetingError.KICKED_USER_CANNOT_REJOIN);
+        if (meetingUser != null) {
+            if (meetingUser.getStatus().equals(Status.HOST) || meetingUser.getStatus().equals(Status.PARTICIPATING)) {
+                throw new BusinessException(MeetingError.ALREADY_JOINED_MEETING);
+            } else if (meetingUser.getStatus().equals(Status.KICKED)) {
+                throw new BusinessException(MeetingError.KICKED_USER_CANNOT_REJOIN);
+            }
         }
 
         Meeting meeting = meetingRepository.findById(meetingId)
@@ -99,6 +108,62 @@ public class MeetingService {
         meetingUserRepository.save(meetingUser);
 
         return new JoinMeetingResponse(meetingId);
+    }
+
+    /**
+     * 모임 가입 신청 승인 메서드
+     * @param token
+     * @param meetingId
+     * @param userId
+     * @return ApproveJoinMeetingResponse (meetingId, approvedUserId)
+     */
+    @Transactional
+    public ApproveJoinMeetingResponse approveJoinMeeting(String token, Long meetingId, Long userId) {
+        Long hostId = jwtUtil.getUserIdFromToken(token);
+
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        if (!hostId.equals(meeting.getUser().getId())) {
+            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_MEMBER_MANAGEMENT);
+        }
+
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+        if (meetingUser.getStatus().equals(Status.REQUESTED)) {
+            meetingUser.approveJoin(Status.PARTICIPATING);
+        } else {
+            throw new BusinessException(MeetingError.NOT_A_PARTICIPATING_MEMBER);
+        }
+
+        return new ApproveJoinMeetingResponse(meetingId, userId);
+    }
+
+    /**
+     * 모임 멤버 강퇴 메서드
+     * @param token
+     * @param meetingId
+     * @param userId
+     * @return KickMemberMeetingResponse (meetingId, kickedUserId)
+     */
+    @Transactional
+    public KickMemberMeetingResponse kickMemberMeeting(String token, Long meetingId, Long userId) {
+        Long hostId = jwtUtil.getUserIdFromToken(token);
+
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        if (!hostId.equals(meeting.getUser().getId())) {
+            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_MEMBER_MANAGEMENT);
+        }
+
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+        if (meetingUser.getStatus().equals(Status.PARTICIPATING)) {
+            meetingUser.approveJoin(Status.KICKED);
+        } else {
+            throw new BusinessException(MeetingError.NOT_A_PARTICIPATING_MEMBER);
+        }
+
+        return new KickMemberMeetingResponse(meetingId, userId);
     }
 
     /**
@@ -136,6 +201,57 @@ public class MeetingService {
     }
 
     /**
+     * 내 모임 리스트 조회
+     * @param token
+     * @param meetingStatus
+     * @return List<MyMeetingListResponse>
+     */
+    public List<MyMeetingListResponse> getMyMeetingList(String token, String meetingStatus) {
+        Long userId = jwtUtil.getUserIdFromToken(token);
+
+        List<MeetingUser> meetingUsers;
+        switch (meetingStatus) {
+            case "approved":
+                meetingUsers = meetingUserRepository.findByUserIdAndStatusIn(
+                        userId, List.of(Status.HOST, Status.PARTICIPATING)
+                );
+                break;
+            case "pending":
+                meetingUsers = meetingUserRepository.findByUserIdAndStatus(userId, Status.REQUESTED);
+                break;
+            default:
+                throw new BusinessException(CommonError.INVALID_PARAMETER);
+        }
+
+        List<MyMeetingListResponse> myMeetingListResponses = new ArrayList<>();
+        for (MeetingUser meetingUser : meetingUsers) {
+            Long meetingId = meetingUser.getMeeting().getId();
+            Meeting meeting = meetingRepository.findById(meetingId)
+                    .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+            Status status = null;
+            if (meetingUser.getStatus().equals(Status.HOST)) {
+                status = Status.HOST;
+            } else if (meetingUser.getStatus().equals(Status.PARTICIPATING)) {
+                status = Status.PARTICIPATING;
+            } else if (meetingUser.getStatus().equals(Status.REQUESTED)) {
+                status = Status.REQUESTED;
+            }
+            boolean isHost = meetingUser.getStatus().equals(Status.HOST);
+            String title = meeting.getTitle();
+            String description = meeting.getDescription();
+            Location location = meeting.getLocation();
+            Schedule schedule = meeting.getSchedule();
+            String imageUrl = meeting.getImageUrl();
+
+            MyMeetingListResponse myMeetingListResponse
+                    = new MyMeetingListResponse(meetingId, status, isHost, title, description, location, schedule, imageUrl);
+            myMeetingListResponses.add(myMeetingListResponse);
+        }
+        return myMeetingListResponses;
+    }
+
+    /**
      * 모임 상세 정보 조회
      *
      * @param meetingId
@@ -170,6 +286,12 @@ public class MeetingService {
         return meetingDetailResponse;
     }
 
+    /**
+     * 모임 멤버 리스트 메서드
+     * @param token
+     * @param meetingId
+     * @return List<MeetingUsersListResponse> (userId, userNickName, userImageUrl, status)
+     */
     public List<MeetingUsersListResponse> getmeetingUsersList(String token, Long meetingId) {
         Long hostId = jwtUtil.getUserIdFromToken(token);
 
@@ -185,7 +307,7 @@ public class MeetingService {
         List<MeetingUsersListResponse> meetingUsersListResponses = new ArrayList<>();
         for (MeetingUser meetingUser : meetingUsers) {
             Status status = meetingUser.getStatus();
-            if (status.equals(Status.HOST) || status.equals(Status.REJECTED) || status.equals(Status.KICKED) || status.equals(Status.LEFT)) {
+            if (status.equals(Status.HOST) || status.equals(Status.REJECTED) || status.equals(Status.KICKED)) {
                 continue;
             }
 
@@ -204,7 +326,6 @@ public class MeetingService {
 
     /**
      * 모임 정보 수정 메서드
-     *
      * @param token
      * @param meetingId
      * @param updateMeetingRequest
@@ -256,6 +377,11 @@ public class MeetingService {
         return new UpdateMeetingResponse(meeting.getId());
     }
 
+    /**
+     * 모임 삭제 메서드
+     * @param token
+     * @param meetingId
+     */
     @Transactional
     public void deleteMeeting(String token, Long meetingId) {
         Meeting meeting = meetingRepository.findById(meetingId)
@@ -271,6 +397,7 @@ public class MeetingService {
 
     /**
      * 모임 가입 신청 취소
+     *
      * @param token
      * @param meetingId
      * @return CancelJoinMeetingResponse (meetingId, userId)
@@ -291,4 +418,56 @@ public class MeetingService {
         return new CancelJoinMeetingResponse(meetingId, userId);
     }
 
+    /**
+     * 모임 나가기 메서드
+     * @param token
+     * @param meetingId
+     * @return LeaveMeetingResponse (meetingUser, leftUserId)
+     */
+    @Transactional
+    public LeaveMeetingResponse leaveMeeting(String token, Long meetingId) {
+        Long userId = jwtUtil.getUserIdFromToken(token);
+
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+
+        Long meetingUserId = meetingUser.getId();
+        if (meetingUser.getStatus().equals(Status.PARTICIPATING)) {
+            meetingUserRepository.deleteById(meetingUserId);
+        } else if (meetingUser.getStatus().equals(Status.HOST)) {
+            throw new BusinessException(MeetingError.HOST_CANNOT_LEAVE_MEETING);
+        } else {
+            throw new BusinessException(MeetingError.NOT_JOINED_MEETING);
+        }
+
+        return new LeaveMeetingResponse(meetingId, userId);
+    }
+
+    /**
+     * 모임 가입 신청 거절 메서드
+     * @param token
+     * @param meetingId
+     * @param userId
+     * @return RejectMeetingResponse (meetingId, rejectedUserId)
+     */
+    @Transactional
+    public RejectMeetingResponse rejectMeeting(String token, Long meetingId, Long userId) {
+        Long hostId = jwtUtil.getUserIdFromToken(token);
+
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new BusinessException(MeetingError.MEETING_NOT_FOUND));
+
+        if (!hostId.equals(meeting.getUser().getId())) {
+            throw new BusinessException(MeetingError.FORBIDDEN_MEETING_MEMBER_MANAGEMENT);
+        }
+
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+        Long meetingUserId = meetingUser.getId();
+        if (meetingUser.getStatus().equals(Status.REQUESTED)) {
+            meetingUserRepository.deleteById(meetingUserId);
+        } else {
+            throw new BusinessException(MeetingError.NOT_A_PARTICIPATING_MEMBER);
+        }
+
+        return new RejectMeetingResponse(meetingId, userId);
+    }
 }

@@ -5,6 +5,5 @@ public enum Status {
     REQUESTED,
     PARTICIPATING,
     KICKED,
-    REJECTED,
-    LEFT
+    REJECTED
 }

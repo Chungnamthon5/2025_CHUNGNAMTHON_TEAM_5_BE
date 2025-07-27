@@ -36,12 +36,41 @@ public class MeetingController implements MeetingControllerSwagger {
         return ResponseDto.of(joinMeetingResponse, "You have successfully applied to join the group.");
     }
 
+    @PostMapping("/{meetingId}/approve/{userId}")
+    public ResponseDto<ApproveJoinMeetingResponse> approveJoinMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId,
+            @PathVariable("userId") Long userId
+    ) {
+        ApproveJoinMeetingResponse approveJoinMeetingResponse = meetingService.approveJoinMeeting(token, meetingId, userId);
+        return ResponseDto.of(approveJoinMeetingResponse, "The user has been approved to join the meeting.");
+    }
+
+    @PostMapping("{meetingId}/kick/{userId}")
+    public ResponseDto<KickMemberMeetingResponse> kickMemberMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId,
+            @PathVariable("userId") Long userId
+    ) {
+        KickMemberMeetingResponse kickMemberMeetingResponse = meetingService.kickMemberMeeting(token, meetingId, userId);
+        return ResponseDto.of(kickMemberMeetingResponse, "The user has been removed from the meeting.");
+    }
+
     @GetMapping
     public ResponseDto<List<MeetingListResponse>> meetingList(
             @RequestHeader(name = "Authorization", required = false) String token
     ) {
         List<MeetingListResponse> meetingListResponse = meetingService.getMeetingList(token);
         return ResponseDto.of(meetingListResponse, "Successfully retrieved meeting list.");
+    }
+
+    @GetMapping("/me/{status}")
+    public ResponseDto<List<MyMeetingListResponse>> myMeetingList(
+            @RequestHeader("Authorization") String token,
+            @PathVariable(name = "status") String status
+    ) {
+        List<MyMeetingListResponse> meetingListResponses = meetingService.getMyMeetingList(token, status);
+        return ResponseDto.of(meetingListResponses, "Successfully retrieved my meeting list.");
     }
 
     @GetMapping("/{meetingId}")
@@ -88,5 +117,24 @@ public class MeetingController implements MeetingControllerSwagger {
     ) {
         CancelJoinMeetingResponse cancelJoinMeetingResponse = meetingService.cancelJoinMeeting(token, meetingId);
         return ResponseDto.of(cancelJoinMeetingResponse, "Your join request has been successfully cancelled.");
+    }
+
+    @DeleteMapping("/{meetingId}/leave")
+    public ResponseDto<LeaveMeetingResponse> leaveMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId
+    ) {
+        LeaveMeetingResponse leaveMeetingResponse = meetingService.leaveMeeting(token, meetingId);
+        return ResponseDto.of(leaveMeetingResponse, "You have successfully left the meeting.");
+    }
+
+    @DeleteMapping("/{meetingId}/reject/{userId}")
+    public ResponseDto<RejectMeetingResponse> rejectJoinMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId,
+            @PathVariable("userId") Long userId
+    ) {
+        RejectMeetingResponse rejectMeetingResponse = meetingService.rejectMeeting(token, meetingId, userId);
+        return ResponseDto.of(rejectMeetingResponse, "The user's join request has been rejected.");
     }
 }

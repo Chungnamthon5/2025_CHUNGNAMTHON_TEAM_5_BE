@@ -1,9 +1,9 @@
-package com.chungnamthon.cheonon.point.service;
+package com.chungnamthon.cheonon.poweruser.service;
 
-import com.chungnamthon.cheonon.point.domain.PowerUser;
-import com.chungnamthon.cheonon.point.dto.response.PowerUserResponse;
+import com.chungnamthon.cheonon.poweruser.domain.PowerUser;
+import com.chungnamthon.cheonon.poweruser.dto.PowerUserResponse;
 import com.chungnamthon.cheonon.point.repository.PointRepository;
-import com.chungnamthon.cheonon.point.repository.PowerUserRepository;
+import com.chungnamthon.cheonon.poweruser.PowerUserRepository;
 import com.chungnamthon.cheonon.user.domain.User;
 import com.chungnamthon.cheonon.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

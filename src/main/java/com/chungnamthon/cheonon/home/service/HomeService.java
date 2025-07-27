@@ -5,8 +5,8 @@ import com.chungnamthon.cheonon.map.dto.AffiliateHomePreviewResponse;
 import com.chungnamthon.cheonon.map.service.AffiliateService;
 import com.chungnamthon.cheonon.meeting.dto.response.MeetingPreviewResponse;
 import com.chungnamthon.cheonon.meeting.repository.MeetingRepository;
-import com.chungnamthon.cheonon.point.dto.response.PowerUserResponse;
-import com.chungnamthon.cheonon.point.service.PowerUserService;
+import com.chungnamthon.cheonon.poweruser.dto.PowerUserResponse;
+import com.chungnamthon.cheonon.poweruser.service.PowerUserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -36,7 +36,7 @@ public class HomeService {
 
         List<AffiliateHomePreviewResponse> topAffiliates;
         try {
-            topAffiliates = affiliateService.getTop4Affiliates();
+            topAffiliates = affiliateService.getAffiliateList();
         } catch (Exception e) {
             log.error("홈화면 제휴업체 데이터 조회 실패: {}", e.getMessage());
             topAffiliates = List.of();

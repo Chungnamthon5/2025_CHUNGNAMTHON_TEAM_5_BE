@@ -1,6 +1,6 @@
-package com.chungnamthon.cheonon.point.dto.response;
+package com.chungnamthon.cheonon.poweruser.dto;
 
-import com.chungnamthon.cheonon.point.domain.PowerUser;
+import com.chungnamthon.cheonon.poweruser.domain.PowerUser;
 import lombok.Builder;
 import lombok.Getter;
 

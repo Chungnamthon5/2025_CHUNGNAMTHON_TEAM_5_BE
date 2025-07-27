@@ -119,14 +119,14 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "가입 신청 성공 응답",
                                             value = """
-                                {
-                                    "timeStamp": "2025-07-25T04:38:30.8827509",
-                                    "message": "You have successfully applied to join the group.",
-                                    "data": {
-                                        "meetingId": 44
-                                    }
-                                }
-                            """
+                                                        {
+                                                            "timeStamp": "2025-07-25T04:38:30.8827509",
+                                                            "message": "You have successfully applied to join the group.",
+                                                            "data": {
+                                                                "meetingId": 44
+                                                            }
+                                                        }
+                                                    """
                                     )
                             )
                     ),
@@ -139,12 +139,12 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "가입 중복 에러",
                                             value = """
-                                {
-                                    "httpStatus": "BAD_REQUEST",
-                                    "message": "이미 가입 중이거나, 신청하지 않은 모임입니다.",
-                                    "timeStamp": "2025-07-25T04:40:00"
-                                }
-                            """
+                                                        {
+                                                            "httpStatus": "BAD_REQUEST",
+                                                            "message": "이미 가입 중이거나, 신청하지 않은 모임입니다.",
+                                                            "timeStamp": "2025-07-25T04:40:00"
+                                                        }
+                                                    """
                                     )
                             )
                     )
@@ -171,6 +171,215 @@ public interface MeetingControllerSwagger {
             @RequestHeader("Authorization") String token,
             @PathVariable("meetingId") Long meetingId
     );
+
+    @PostMapping("/{meetingId}/approve/{userId}")
+    @Operation(
+            summary = "모임 가입 신청 승인",
+            description = "호스트가 신청자의 가입을 승인합니다. 신청 상태가 'REQUESTED'인 경우에만 승인됩니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "가입 승인 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "가입 승인 성공 응답 예시",
+                                            value = """
+                                                    {
+                                                      "timeStamp": "2025-07-25T22:45:00",
+                                                      "message": "The user has been approved to join the meeting.",
+                                                      "data": {
+                                                        "meetingId": 1,
+                                                        "approvedUserId": 3
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "호스트가 아님 / 승인 권한 없음",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "호스트 권한 없음",
+                                            value = """
+                                                    {
+                                                      "httpStatus": "FORBIDDEN",
+                                                      "message": "본인이 생성한 모임의 멤버만 관리할 수 있습니다.",
+                                                      "timeStamp": "2025-07-25T22:46:00"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "400",
+                            description = "잘못된 신청 상태",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "승인 불가 상태",
+                                            value = """
+                                                    {
+                                                      "httpStatus": "BAD_REQUEST",
+                                                      "message": "해당 모임에 참여 중인 멤버가 아닙니다.",
+                                                      "timeStamp": "2025-07-25T22:47:00"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    )
+            },
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @Parameter(
+            name = "Authorization",
+            description = "JWT 토큰 (Bearer 방식)",
+            required = true,
+            in = ParameterIn.HEADER,
+            schema = @Schema(type = "string", format = "jwt"),
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
+    @Parameter(
+            name = "meetingId",
+            description = "가입을 승인할 모임 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "1"
+    )
+    @Parameter(
+            name = "userId",
+            description = "가입을 승인할 사용자 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "3"
+    )
+    ResponseDto<ApproveJoinMeetingResponse> approveJoinMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId,
+            @PathVariable("userId") Long userId
+    );
+
+    @PostMapping("/{meetingId}/kick/{userId}")
+    @Operation(
+            summary = "모임 멤버 강퇴",
+            description = "호스트가 모임의 참여 멤버를 강퇴합니다. 상태가 'PARTICIPATING'인 멤버만 강퇴 가능하며, 상태는 'KICKED'로 변경됩니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "강퇴 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "강퇴 성공 응답 예시",
+                                            value = """
+                                                    {
+                                                      "timeStamp": "2025-07-25T04:38:30.8827509",
+                                                      "message": "The user has been removed from the meeting.",
+                                                      "data": {
+                                                        "meetingId": 44,
+                                                        "kickedUserId": 103
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "호스트가 아님 또는 강퇴 권한 없음",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "호스트 권한 없음",
+                                            value = """
+                                                    {
+                                                      "httpStatus": "FORBIDDEN",
+                                                      "message": "본인이 생성한 모임의 멤버만 관리할 수 있습니다.",
+                                                      "timeStamp": "2025-07-26T15:01:00"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "참여 중이 아닌 멤버",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "강퇴 불가 상태",
+                                            value = """
+                                                    {
+                                                      "httpStatus": "FORBIDDEN",
+                                                      "message": "해당 모임에 참여 중인 멤버가 아닙니다.",
+                                                      "timeStamp": "2025-07-26T15:02:00"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "존재하지 않는 모임",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "모임 없음 에러",
+                                            value = """
+                                                    {
+                                                      "httpStatus": "NOT_FOUND",
+                                                      "message": "존재하지 않는 모임입니다.",
+                                                      "timeStamp": "2025-07-26T15:03:00"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    )
+            },
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @Parameter(
+            name = "Authorization",
+            description = "JWT 토큰 (Bearer 방식)",
+            required = true,
+            in = ParameterIn.HEADER,
+            schema = @Schema(type = "string", format = "jwt"),
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
+    @Parameter(
+            name = "meetingId",
+            description = "강퇴할 유저가 포함된 모임 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "44"
+    )
+    @Parameter(
+            name = "userId",
+            description = "강퇴할 사용자 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "103"
+    )
+    ResponseDto<KickMemberMeetingResponse> kickMemberMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId,
+            @PathVariable("userId") Long userId
+    );
+
 
     @GetMapping
     @Operation(
@@ -226,6 +435,96 @@ public interface MeetingControllerSwagger {
     )
     ResponseDto<List<MeetingListResponse>> meetingList(
             @RequestHeader(name = "Authorization", required = false) String token
+    );
+
+    @Operation(
+            summary = "내 모임 리스트 조회",
+            description = """
+            내 모임 중에서 상태값(status)에 따라 리스트를 조회합니다.
+
+            - `approved`: 참여 중인 모임 (HOST 또는 PARTICIPATING 상태)
+            - `pending`: 가입 요청한 모임 (REQUESTED 상태)
+            """,
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "내 모임 리스트 조회 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "내 모임 리스트 예시",
+                                            value = """
+                            {
+                              "timeStamp": "2025-07-26T19:00:00",
+                              "message": "Successfully retrieved my meeting list.",
+                              "data": [
+                                {
+                                  "meetingId": 1,
+                                  "status": "HOST",
+                                  "isHost": true,
+                                  "title": "천안역 커피 모임",
+                                  "description": "같이 커피 마셔요!",
+                                  "location": "MOKCHEON",
+                                  "schedule": "WEEKEND",
+                                  "imageUrl": "https://example.com/image.jpg"
+                                },
+                                {
+                                  "meetingId": 2,
+                                  "status": "PARTICIPATING",
+                                  "isHost": false,
+                                  "title": "러닝 크루",
+                                  "description": "평일 아침 러닝",
+                                  "location": "SEOBUK",
+                                  "schedule": "WEEKDAY",
+                                  "imageUrl": "https://example.com/image2.jpg"
+                                }
+                              ]
+                            }
+                            """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "유효하지 않은 파라미터",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "잘못된 status 값",
+                                            value = """
+                            {
+                              "httpStatus": "NOT_FOUND",
+                              "message": "유효하지 않은 파라미터입니다.",
+                              "timeStamp": "2025-07-26T19:01:00"
+                            }
+                            """
+                                    )
+                            )
+                    )
+            },
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @Parameter(
+            name = "Authorization",
+            description = "JWT 토큰 (Bearer 방식)",
+            required = true,
+            in = ParameterIn.HEADER,
+            schema = @Schema(type = "string", format = "jwt"),
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
+    @Parameter(
+            name = "status",
+            description = "조회할 모임 상태 (approved 또는 pending)",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "string", allowableValues = {"approved", "pending"})
+    )
+    @GetMapping("/me/{status}")
+    ResponseDto<List<MyMeetingListResponse>> myMeetingList(
+            @RequestHeader("Authorization") String token,
+            @PathVariable(name = "status") String status
     );
 
     @GetMapping("/{meetingId}")
@@ -316,25 +615,25 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "모임 멤버 리스트 응답 예시",
                                             value = """
-                                {
-                                  "timeStamp": "2025-07-25T12:30:00",
-                                  "message": "Successfully retrieved meeting members.",
-                                  "data": [
-                                    {
-                                      "userId": 10,
-                                      "userNickName": "예린",
-                                      "userImageUrl": "https://example.com/user.jpg",
-                                      "status": "REQUESTED"
-                                    },
-                                    {
-                                      "userId": 12,
-                                      "userNickName": "홍길동",
-                                      "userImageUrl": "https://example.com/user2.jpg",
-                                      "status": "PARTICIPATING"
-                                    }
-                                  ]
-                                }
-                            """
+                                                        {
+                                                          "timeStamp": "2025-07-25T12:30:00",
+                                                          "message": "Successfully retrieved meeting members.",
+                                                          "data": [
+                                                            {
+                                                              "userId": 10,
+                                                              "userNickName": "예린",
+                                                              "userImageUrl": "https://example.com/user.jpg",
+                                                              "status": "REQUESTED"
+                                                            },
+                                                            {
+                                                              "userId": 12,
+                                                              "userNickName": "홍길동",
+                                                              "userImageUrl": "https://example.com/user2.jpg",
+                                                              "status": "PARTICIPATING"
+                                                            }
+                                                          ]
+                                                        }
+                                                    """
                                     )
                             )
                     ),
@@ -347,12 +646,12 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "접근 권한 없음 에러",
                                             value = """
-                                {
-                                  "httpStatus": "FORBIDDEN",
-                                  "message": "본인이 생성한 모임의 멤버 리스트만 조회할 수 있습니다.",
-                                  "timeStamp": "2025-07-25T12:31:00"
-                                }
-                            """
+                                                        {
+                                                          "httpStatus": "FORBIDDEN",
+                                                          "message": "본인이 생성한 모임의 멤버 리스트만 조회할 수 있습니다.",
+                                                          "timeStamp": "2025-07-25T12:31:00"
+                                                        }
+                                                    """
                                     )
                             )
                     )
@@ -566,15 +865,15 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "가입 신청 취소 성공 예시",
                                             value = """
-                            {
-                                "timeStamp": "2025-07-25T04:38:30.8827509",
-                                "message": "Your join request has been successfully cancelled.",
-                                "data": {
-                                    "meetingId": 44,
-                                    "cancelUserId": 7
-                                }
-                            }
-                            """
+                                                    {
+                                                        "timeStamp": "2025-07-25T04:38:30.8827509",
+                                                        "message": "Your join request has been successfully cancelled.",
+                                                        "data": {
+                                                            "meetingId": 44,
+                                                            "cancelUserId": 7
+                                                        }
+                                                    }
+                                                    """
                                     )
                             )
                     ),
@@ -587,12 +886,12 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "취소 불가 상태 에러 예시",
                                             value = """
-                            {
-                                "httpStatus": "BAD_REQUEST",
-                                "message": "이미 가입 중이거나, 신청하지 않은 모임입니다.",
-                                "timeStamp": "2025-07-25T04:40:00"
-                            }
-                            """
+                                                    {
+                                                        "httpStatus": "BAD_REQUEST",
+                                                        "message": "이미 가입 중이거나, 신청하지 않은 모임입니다.",
+                                                        "timeStamp": "2025-07-25T04:40:00"
+                                                    }
+                                                    """
                                     )
                             )
                     ),
@@ -605,12 +904,12 @@ public interface MeetingControllerSwagger {
                                     examples = @ExampleObject(
                                             name = "모임 없음 에러",
                                             value = """
-                            {
-                                "httpStatus": "NOT_FOUND",
-                                "message": "존재하지 않는 모임입니다.",
-                                "timeStamp": "2025-07-25T04:41:00"
-                            }
-                            """
+                                                    {
+                                                        "httpStatus": "NOT_FOUND",
+                                                        "message": "존재하지 않는 모임입니다.",
+                                                        "timeStamp": "2025-07-25T04:41:00"
+                                                    }
+                                                    """
                                     )
                             )
                     )
@@ -636,6 +935,205 @@ public interface MeetingControllerSwagger {
     ResponseDto<CancelJoinMeetingResponse> cancelJoinMeeting(
             @RequestHeader("Authorization") String token,
             @PathVariable("meetingId") Long meetingId
+    );
+
+    @DeleteMapping("/{meetingId}/leave")
+    @Operation(
+            summary = "모임 탈퇴",
+            description = "참여 중인 모임에서 탈퇴합니다. 호스트는 탈퇴할 수 없으며, 탈퇴하려면 모임을 삭제해야 합니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "모임 탈퇴 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "모임 탈퇴 성공 예시",
+                                            value = """
+                                                    {
+                                                      "timeStamp": "2025-07-25T22:10:00",
+                                                      "message": "You have successfully left the meeting.",
+                                                      "data": {
+                                                        "meetingId": 5,
+                                                        "leftUserId": 3
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "호스트는 모임 탈퇴 불가",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "호스트 탈퇴 불가 예시",
+                                            value = """
+                                                    {
+                                                      "httpStatus": "FORBIDDEN",
+                                                      "message": "호스트는 모임을 탈퇴할 수 없습니다. 모임을 삭제해 주세요.",
+                                                      "timeStamp": "2025-07-25T22:11:00"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "참여자가 아님",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "참여자가 아님 예시",
+                                            value = """
+                                                    {
+                                                      "httpStatus": "FORBIDDEN",
+                                                      "message": "참여하고 있지 않은 모임입니다.",
+                                                      "timeStamp": "2025-07-25T22:12:00"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    )
+            },
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @Parameter(
+            name = "Authorization",
+            description = "JWT 토큰 (Bearer 방식)",
+            required = true,
+            in = ParameterIn.HEADER,
+            schema = @Schema(type = "string", format = "jwt"),
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
+    @Parameter(
+            name = "meetingId",
+            description = "탈퇴할 모임 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "5"
+    )
+    ResponseDto<LeaveMeetingResponse> leaveMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId
+    );
+
+    @DeleteMapping("/{meetingId}/reject/{userId}")
+    @Operation(
+            summary = "모임 가입 신청 거절",
+            description = "호스트가 신청자의 모임 가입 요청을 거절합니다. 신청 상태가 'REQUESTED'인 경우에만 삭제됩니다.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "가입 거절 성공",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "가입 거절 성공 응답 예시",
+                                            value = """
+                                                    {
+                                                      "timeStamp": "2025-07-26T15:00:00",
+                                                      "message": "The user has been rejected from the meeting.",
+                                                      "data": {
+                                                        "meetingId": 1,
+                                                        "rejectedUserId": 5
+                                                      }
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "호스트가 아님 / 거절 권한 없음",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "호스트 권한 없음",
+                                            value = """
+                                                    {
+                                                      "httpStatus": "FORBIDDEN",
+                                                      "message": "본인이 생성한 모임의 멤버만 관리할 수 있습니다.",
+                                                      "timeStamp": "2025-07-26T15:01:00"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "403",
+                            description = "요청 상태가 아님",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "요청 상태 아님",
+                                            value = """
+                                                    {
+                                                      "httpStatus": "FORBIDDEN",
+                                                      "message": "해당 모임에 참여 중인 멤버가 아닙니다.",
+                                                      "timeStamp": "2025-07-26T15:02:00"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    ),
+                    @ApiResponse(
+                            responseCode = "404",
+                            description = "존재하지 않는 모임",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ResponseDto.class),
+                                    examples = @ExampleObject(
+                                            name = "모임 없음 에러",
+                                            value = """
+                                                    {
+                                                      "httpStatus": "NOT_FOUND",
+                                                      "message": "존재하지 않는 모임입니다.",
+                                                      "timeStamp": "2025-07-26T15:03:00"
+                                                    }
+                                                    """
+                                    )
+                            )
+                    )
+            },
+            security = @SecurityRequirement(name = "bearerAuth")
+    )
+    @Parameter(
+            name = "Authorization",
+            description = "JWT 토큰 (Bearer 방식)",
+            required = true,
+            in = ParameterIn.HEADER,
+            schema = @Schema(type = "string", format = "jwt"),
+            example = "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    )
+    @Parameter(
+            name = "meetingId",
+            description = "거절할 대상이 있는 모임 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "1"
+    )
+    @Parameter(
+            name = "userId",
+            description = "거절할 유저 ID",
+            required = true,
+            in = ParameterIn.PATH,
+            schema = @Schema(type = "integer", format = "int64"),
+            example = "5"
+    )
+    ResponseDto<RejectMeetingResponse> rejectJoinMeeting(
+            @RequestHeader("Authorization") String token,
+            @PathVariable("meetingId") Long meetingId,
+            @PathVariable("userId") Long userId
     );
 
 }

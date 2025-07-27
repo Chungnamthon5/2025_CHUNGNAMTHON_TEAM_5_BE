@@ -1,8 +1,12 @@
 package com.chungnamthon.cheonon.coupon.domain;
 
+import com.chungnamthon.cheonon.global.domain.BaseEntity;
 import com.chungnamthon.cheonon.user.domain.User;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
@@ -12,13 +16,11 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "coupon_user")
 @Getter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
-public class CouponUser {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    private Long id;
+public class CouponUser extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "coupon_id")
@@ -28,10 +30,13 @@ public class CouponUser {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Column(name = "expiration_period")
-    LocalDate expirationPeriod;
+    @Column(name = "expiration_date")
+    LocalDate expirationDate;
 
-    @CreatedDate
-    @Column(name = "created_at")
-    private LocalDateTime createdAt;
+    @Column(name = "is_used")
+    private boolean isUsed;
+
+    public void usedCoupon() {
+        this.isUsed = true;
+    }
 }

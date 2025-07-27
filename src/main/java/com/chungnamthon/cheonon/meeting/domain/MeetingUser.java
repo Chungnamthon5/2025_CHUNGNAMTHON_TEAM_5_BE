@@ -41,4 +41,8 @@ public class MeetingUser {
     @CreatedDate
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    public void approveJoin(Status status) {
+        this.status = status;
+    }
 }
