@@ -50,7 +50,7 @@ public class PowerUserService {
     @Transactional(readOnly = true)
     public List<PowerUserResponse> getRecentPowerUsers() {
         LocalDate thisWeek = LocalDate.now().with(DayOfWeek.MONDAY); // 이번 주 월요일
-        return powerUserRepository.findTop5ByWeekOfOrderByRankAsc(thisWeek)
+        return powerUserRepository.findTop5ByWeekOfOrderByRankingAsc(thisWeek)
                 .stream()
                 .map(PowerUserResponse::from)
                 .toList();

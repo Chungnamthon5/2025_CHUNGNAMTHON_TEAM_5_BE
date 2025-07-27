@@ -9,5 +9,5 @@ import java.util.List;
 
 @Repository
 public interface PowerUserRepository extends JpaRepository<PowerUser, Long> {
-    List<PowerUser> findTop5ByWeekOfOrderByRankAsc(LocalDate weekOf);
+    List<PowerUser> findTop5ByWeekOfOrderByRankingAsc(LocalDate weekOf);
 }
