@@ -30,7 +30,8 @@ public enum Location {
     SSANGYONG2,
     SSANGYONG3,
     BAEKSEOK,
-    BULDANG,
+    BULDANG1,
+    BULDANG2,
     BUSEONG1,
     BUSEONG2
 }
