@@ -12,7 +12,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
+
+import static java.util.stream.Collectors.toList;
 
 @Slf4j  // 🆕 로깅을 위해 추가
 @Service
@@ -116,5 +119,15 @@ public class MerchantService {
                 .lng(m.getLongitude())
                 .isAffiliate(m.getIsAffiliate())
                 .build();
+    }
+    public List<MerchantDto> getMerchantsInBounds(
+            Double swLat, Double swLng,
+            Double neLat, Double neLng) {
+
+        return merchantRepository
+                .findMerchantsInBounds(swLat, neLat, swLng, neLng)
+                .stream()
+                .map(MerchantDto::fromEntity)
+                .collect(toList());
     }
 }
