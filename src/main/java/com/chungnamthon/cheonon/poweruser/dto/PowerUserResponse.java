@@ -12,7 +12,7 @@ public class PowerUserResponse {
     private String nickname;
     private String image;
     private Integer totalPoint;
-    private Integer rank;
+    private Integer ranking;
 
     public static PowerUserResponse from(PowerUser powerUser) {
         return PowerUserResponse.builder()
@@ -20,7 +20,7 @@ public class PowerUserResponse {
                 .nickname(powerUser.getUser().getNickname())
                 .image(powerUser.getUser().getImage())
                 .totalPoint(powerUser.getTotalPoint())
-                .rank(powerUser.getRank())
+                .ranking(powerUser.getRanking())
                 .build();
     }
 }
