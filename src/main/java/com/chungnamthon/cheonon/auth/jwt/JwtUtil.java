@@ -109,7 +109,7 @@ public class JwtUtil {
     }
 
     // ✅ 토큰 전처리 메서드 추가
-    private String preprocessToken(String token) {
+    public String preprocessToken(String token) {
         if (token == null) {
             throw new IllegalArgumentException("JWT token cannot be null");
         }
