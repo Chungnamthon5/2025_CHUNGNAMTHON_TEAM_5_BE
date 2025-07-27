@@ -12,7 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 
 @RestController
-@RequestMapping("/api/v1/receipts")
+@RequestMapping("/api/receipts")
 @RequiredArgsConstructor
 public class ReceiptController {
 
@@ -33,6 +33,6 @@ public class ReceiptController {
             @AuthenticationPrincipal(expression = "userId") Long userId
     ) {
         ReceiptConfirmResponseDto dto = receiptService.confirm(previewId, userId);
-        return ResponseDto.of(dto, "Receipt confirmed and 300p awarded!");
+        return ResponseDto.of(dto, "Receipt confirmed and 50p awarded!");
     }
 }
