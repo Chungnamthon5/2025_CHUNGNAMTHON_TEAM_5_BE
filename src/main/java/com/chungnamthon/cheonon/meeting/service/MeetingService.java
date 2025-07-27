@@ -77,6 +77,7 @@ public class MeetingService {
 
     /**
      * 모임 가입 신청 메서드
+     *
      * @param token
      * @param meetingId
      * @return JoinMeetingResponse (meetingId)
@@ -112,6 +113,7 @@ public class MeetingService {
 
     /**
      * 모임 가입 신청 승인 메서드
+     *
      * @param token
      * @param meetingId
      * @param userId
@@ -140,6 +142,7 @@ public class MeetingService {
 
     /**
      * 모임 멤버 강퇴 메서드
+     *
      * @param token
      * @param meetingId
      * @param userId
@@ -179,9 +182,16 @@ public class MeetingService {
             userId = jwtUtil.getUserIdFromToken(token);
         }
 
+        System.out.println("userId = " + userId);
         List<MeetingListResponse> meetingListResponses = new ArrayList<>();
         for (Meeting meeting : meetingList) {
             Long meetingId = meeting.getId();
+            MeetingUser meetingUser;
+            Status status = null;
+            meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+            if (meetingUser != null) {
+                status = meetingUser.getStatus();
+            }
             boolean isHost = false;
             if (userId != null) {
                 isHost = userId.equals(meeting.getUser().getId());
@@ -193,7 +203,7 @@ public class MeetingService {
             String imageUrl = meeting.getImageUrl();
 
             MeetingListResponse meetingListResponse
-                    = new MeetingListResponse(meetingId, isHost, title, description, location, schedule, imageUrl);
+                    = new MeetingListResponse(meetingId, status, isHost, title, description, location, schedule, imageUrl);
             meetingListResponses.add(meetingListResponse);
         }
 
@@ -202,6 +212,7 @@ public class MeetingService {
 
     /**
      * 내 모임 리스트 조회
+     *
      * @param token
      * @param meetingStatus
      * @return List<MyMeetingListResponse>
@@ -288,6 +299,7 @@ public class MeetingService {
 
     /**
      * 모임 멤버 리스트 메서드
+     *
      * @param token
      * @param meetingId
      * @return List<MeetingUsersListResponse> (userId, userNickName, userImageUrl, status)
@@ -326,6 +338,7 @@ public class MeetingService {
 
     /**
      * 모임 정보 수정 메서드
+     *
      * @param token
      * @param meetingId
      * @param updateMeetingRequest
@@ -379,6 +392,7 @@ public class MeetingService {
 
     /**
      * 모임 삭제 메서드
+     *
      * @param token
      * @param meetingId
      */
@@ -420,6 +434,7 @@ public class MeetingService {
 
     /**
      * 모임 나가기 메서드
+     *
      * @param token
      * @param meetingId
      * @return LeaveMeetingResponse (meetingUser, leftUserId)
@@ -444,6 +459,7 @@ public class MeetingService {
 
     /**
      * 모임 가입 신청 거절 메서드
+     *
      * @param token
      * @param meetingId
      * @param userId

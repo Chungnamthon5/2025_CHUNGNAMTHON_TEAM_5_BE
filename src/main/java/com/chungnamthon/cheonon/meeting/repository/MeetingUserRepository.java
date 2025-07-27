@@ -1,5 +1,6 @@
 package com.chungnamthon.cheonon.meeting.repository;
 
+import com.chungnamthon.cheonon.meeting.domain.Meeting;
 import com.chungnamthon.cheonon.meeting.domain.MeetingUser;
 import com.chungnamthon.cheonon.meeting.domain.value.Status;
 import org.springframework.data.jpa.repository.JpaRepository;
