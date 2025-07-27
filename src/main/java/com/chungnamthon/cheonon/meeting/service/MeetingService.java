@@ -15,6 +15,7 @@ import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.response.*;
 import com.chungnamthon.cheonon.meeting.repository.MeetingRepository;
 import com.chungnamthon.cheonon.meeting.repository.MeetingUserRepository;
+import com.chungnamthon.cheonon.point.service.PointService;
 import com.chungnamthon.cheonon.user.domain.User;
 import com.chungnamthon.cheonon.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class MeetingService {
     private final MeetingRepository meetingRepository;
     private final MeetingUserRepository meetingUserRepository;
     private final UserRepository userRepository;
+    private final PointService pointService;
     private final JwtUtil jwtUtil;
 
     /**
@@ -72,6 +74,7 @@ public class MeetingService {
         meetingRepository.save(meeting);
         meetingUserRepository.save(meetingUser);
 
+        pointService.rewardForMeetingCreation(userId);
         return new CreateMeetingResponse(meeting.getId());
     }
 
@@ -113,7 +116,6 @@ public class MeetingService {
 
     /**
      * 모임 가입 신청 승인 메서드
-     *
      * @param token
      * @param meetingId
      * @param userId
@@ -137,12 +139,12 @@ public class MeetingService {
             throw new BusinessException(MeetingError.NOT_A_PARTICIPATING_MEMBER);
         }
 
+        pointService.rewardForMeetingParticipation(userId);
         return new ApproveJoinMeetingResponse(meetingId, userId);
     }
 
     /**
      * 모임 멤버 강퇴 메서드
-     *
      * @param token
      * @param meetingId
      * @param userId
@@ -171,7 +173,6 @@ public class MeetingService {
 
     /**
      * 모임 리스트 조회 메서드
-     *
      * @return meetingListResponse (전체 리스트)
      */
     public List<MeetingListResponse> getMeetingList(String token) {
@@ -299,7 +300,6 @@ public class MeetingService {
 
     /**
      * 모임 멤버 리스트 메서드
-     *
      * @param token
      * @param meetingId
      * @return List<MeetingUsersListResponse> (userId, userNickName, userImageUrl, status)
@@ -338,7 +338,6 @@ public class MeetingService {
 
     /**
      * 모임 정보 수정 메서드
-     *
      * @param token
      * @param meetingId
      * @param updateMeetingRequest
@@ -392,7 +391,6 @@ public class MeetingService {
 
     /**
      * 모임 삭제 메서드
-     *
      * @param token
      * @param meetingId
      */
@@ -411,7 +409,6 @@ public class MeetingService {
 
     /**
      * 모임 가입 신청 취소
-     *
      * @param token
      * @param meetingId
      * @return CancelJoinMeetingResponse (meetingId, userId)
@@ -434,7 +431,6 @@ public class MeetingService {
 
     /**
      * 모임 나가기 메서드
-     *
      * @param token
      * @param meetingId
      * @return LeaveMeetingResponse (meetingUser, leftUserId)
@@ -459,7 +455,6 @@ public class MeetingService {
 
     /**
      * 모임 가입 신청 거절 메서드
-     *
      * @param token
      * @param meetingId
      * @param userId
