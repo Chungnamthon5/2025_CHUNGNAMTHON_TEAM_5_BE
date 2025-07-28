@@ -2,6 +2,7 @@ package com.chungnamthon.cheonon.auth.controller;
 
 import com.chungnamthon.cheonon.auth.dto.response.TokenResponse;
 import com.chungnamthon.cheonon.auth.service.KakaoOauthService;
+import com.chungnamthon.cheonon.global.exception.BusinessException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -39,10 +40,7 @@ public class KakaoAuthController {
     public ResponseEntity<Void> kakaoLogin(@RequestParam("code") String code, HttpServletRequest request) {
         try {
             TokenResponse tokenResponse = kakaoOauthService.kakaoLogin(code);
-
-            // 요청 출처에 따라 콜백 URL 결정
             String callbackUrl = determineCallbackUrl(request);
-
             String redirectUrl = UriComponentsBuilder
                     .fromHttpUrl(callbackUrl)
                     .queryParam("accessToken", tokenResponse.getAccessToken())
@@ -54,13 +52,21 @@ public class KakaoAuthController {
             headers.setLocation(URI.create(redirectUrl));
             return new ResponseEntity<>(headers, HttpStatus.FOUND);
 
-        } catch (Exception e) {
-            // 프론트에 실패 알림용 fallback URL로 리디렉션
-            String fallbackUrl = determineFallbackUrl(request);
+        } catch (BusinessException e) {
+            // 에러 코드 이름 전달
+            String fallbackUrl = determineFallbackUrl(request, e.getMessage());
             HttpHeaders headers = new HttpHeaders();
             headers.setLocation(URI.create(fallbackUrl));
             return new ResponseEntity<>(headers, HttpStatus.FOUND);
         }
+    }
+
+    private String determineFallbackUrl(HttpServletRequest request, String errorCode) {
+        String baseUrl = request.getHeader("Origin");
+        if (baseUrl == null || baseUrl.isBlank()) {
+            baseUrl = "https://2025-chungnamthon-team-5-fe.vercel.app";
+        }
+        return baseUrl + "/error?code=" + errorCode;
     }
 
     /**

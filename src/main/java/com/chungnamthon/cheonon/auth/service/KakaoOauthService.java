@@ -18,11 +18,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 
 import java.time.LocalDateTime;
 
@@ -64,8 +64,16 @@ public class KakaoOauthService {
         try {
             HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(params, headers);
             ResponseEntity<KakaoTokenResponse> response = restTemplate.postForEntity(tokenUri, request, KakaoTokenResponse.class);
-            return response.getBody().getAccess_token();
+
+            KakaoTokenResponse body = response.getBody();
+            if (body == null || body.getAccess_token() == null) {
+                log.warn("카카오 토큰 응답 body가 null이거나 access_token이 없음: {}", response);
+                throw new BusinessException(AuthenticationError.KAKAO_CODE_INVALID);
+            }
+
+            return body.getAccess_token();
         } catch (RestClientException e) {
+            log.warn("카카오 토큰 요청 실패", e);
             throw new BusinessException(AuthenticationError.KAKAO_CODE_INVALID);
         }
     }
@@ -84,9 +92,15 @@ public class KakaoOauthService {
 
             // 2차: DTO로 파싱 시도
             ResponseEntity<KakaoUserResponse> response = restTemplate.exchange(userInfoUri, HttpMethod.GET, request, KakaoUserResponse.class);
-            return response.getBody();
+            KakaoUserResponse body = response.getBody();
+
+            if (body == null) {
+                log.warn("카카오 사용자 응답 body가 null임");
+                throw new BusinessException(AuthenticationError.KAKAO_USER_FETCH_FAIL);
+            }
+
+            return body;
         } catch (HttpStatusCodeException e) {
-            // 오류 응답 본문 출력 (예: 동의하지 않은 경우 등)
             System.out.println("❗ Kakao API Error Response: " + e.getResponseBodyAsString());
             throw new BusinessException(AuthenticationError.KAKAO_USER_FETCH_FAIL);
         } catch (RestClientException e) {

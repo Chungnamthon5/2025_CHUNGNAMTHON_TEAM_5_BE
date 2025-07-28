@@ -27,7 +27,7 @@ public class PowerUser extends BaseEntity {
     private LocalDate weekOf; // 예: 2025-07-22 기준이면 7월 22일 포함된 주의 월요일
 
     @Builder
-    public PowerUser(User user, Integer totalPoint, Integer rank, LocalDate weekOf) {
+    public PowerUser(User user, Integer totalPoint, Integer ranking, LocalDate weekOf) {
         this.user = user;
         this.totalPoint = totalPoint;
         this.ranking = ranking;

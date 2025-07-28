@@ -20,40 +20,43 @@ public class HomeService {
 
     private final MeetingRepository meetingRepository;
     private final AffiliateService affiliateService;
-    private final PowerUserService powerUserService; // ✅ 추가된 부분
+    private final PowerUserService powerUserService;
 
     public HomeResponse getHomeData() {
-        List<MeetingPreviewResponse> recentMeetings;
+        return HomeResponse.builder()
+                .recentMeetings(getRecentMeetingsSafely())
+                .topAffiliates(getAffiliatesSafely())
+                .powerUsers(getPowerUsersSafely())
+                .build();
+    }
+
+    private List<MeetingPreviewResponse> getRecentMeetingsSafely() {
         try {
-            recentMeetings = meetingRepository.findTop3ByOrderByCreatedAtDesc()
+            return meetingRepository.findTop3ByOrderByCreatedAtDesc()
                     .stream()
                     .map(MeetingPreviewResponse::from)
                     .toList();
         } catch (Exception e) {
-            log.error("홈화면 모임 데이터 조회 실패: {}", e.getMessage());
-            recentMeetings = List.of();
+            log.error("❗ [Home] 모임 데이터 조회 실패", e);
+            return List.of();
         }
+    }
 
-        List<AffiliateHomePreviewResponse> topAffiliates;
+    private List<AffiliateHomePreviewResponse> getAffiliatesSafely() {
         try {
-            topAffiliates = affiliateService.getAffiliateList();
+            return affiliateService.getAffiliateList();
         } catch (Exception e) {
-            log.error("홈화면 제휴업체 데이터 조회 실패: {}", e.getMessage());
-            topAffiliates = List.of();
+            log.error("❗ [Home] 제휴업체 데이터 조회 실패", e);
+            return List.of();
         }
+    }
 
-        List<PowerUserResponse> topPowerUsers;
+    private List<PowerUserResponse> getPowerUsersSafely() {
         try {
-            topPowerUsers = powerUserService.getRecentPowerUsers();
+            return powerUserService.getRecentPowerUsers();
         } catch (Exception e) {
-            log.error("홈화면 파워유저 데이터 조회 실패: {}", e.getMessage());
-            topPowerUsers = List.of();
+            log.error("❗ [Home] 파워유저 데이터 조회 실패", e);
+            return List.of();
         }
-
-        return HomeResponse.builder()
-                .recentMeetings(recentMeetings)
-                .topAffiliates(topAffiliates)
-                .powerUsers(topPowerUsers)
-                .build();
     }
 }

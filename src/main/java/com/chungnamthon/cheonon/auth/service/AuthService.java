@@ -4,11 +4,15 @@ import com.chungnamthon.cheonon.auth.domain.RefreshToken;
 import com.chungnamthon.cheonon.auth.dto.response.TokenResponse;
 import com.chungnamthon.cheonon.auth.jwt.JwtUtil;
 import com.chungnamthon.cheonon.auth.repository.RefreshTokenRepository;
+import com.chungnamthon.cheonon.global.exception.BusinessException;
+import com.chungnamthon.cheonon.global.exception.error.AuthenticationError;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
 @Service
+@Slf4j
 public class AuthService {
 
     private final JwtUtil jwtUtil;
@@ -16,10 +20,10 @@ public class AuthService {
 
     public TokenResponse refresh(String refreshToken) {
         RefreshToken tokenEntity = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 리프레시 토큰입니다."));
+                .orElseThrow(() -> new BusinessException(AuthenticationError.INVALID_REFRESH_TOKEN));
 
         if (!jwtUtil.validateToken(refreshToken)) {
-            throw new IllegalArgumentException("만료된 리프레시 토큰입니다.");
+            throw new BusinessException(AuthenticationError.REFRESH_TOKEN_EXPIRED);
         }
 
         Long userId = jwtUtil.getUserIdFromToken(refreshToken);
@@ -30,7 +34,10 @@ public class AuthService {
 
     public void logout(String refreshToken) {
         RefreshToken tokenEntity = refreshTokenRepository.findByToken(refreshToken)
-                .orElseThrow(() -> new IllegalArgumentException("해당 리프레시 토큰이 존재하지 않습니다."));
+                .orElseThrow(() -> {
+                    log.warn("로그아웃 요청에서 토큰이 DB에 존재하지 않음: {}", refreshToken);
+                    return new BusinessException(AuthenticationError.INVALID_REFRESH_TOKEN);
+                });
 
         refreshTokenRepository.delete(tokenEntity);
     }
