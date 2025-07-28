@@ -186,7 +186,10 @@ public class ReceiptService {
                             recentReceipt.getMerchant().getId(), recentReceipt.getCreatedAt());
 
                     if (!alreadyRewarded) {
-                        pointService.rewardForAffiliateStoreProof(recentReceipt.getUser().getId());
+                        pointService.rewardForReceiptVerification(
+                                recentReceipt.getUser().getId(),
+                                recentReceipt.getMerchant().getIsAffiliate()
+                        );
                         log.info("사용자 {}에게 팀 인증 포인트 지급 완료", recentReceipt.getUser().getId());
                     } else {
                         log.info("사용자 {}는 이미 포인트를 받았습니다", recentReceipt.getUser().getId());
@@ -219,7 +222,10 @@ public class ReceiptService {
         LocalDateTime checkEnd = receiptCreatedAt.plusMinutes(30);
 
         return pointRepo.existsByUserIdAndPaymentTypeAndCreatedAtBetween(
-                userId, PaymentType.PAYMENT_VERIFICATION, checkStart, checkEnd);
+                userId, PaymentType.PAYMENT_VERIFICATION, checkStart, checkEnd
+        ) || pointRepo.existsByUserIdAndPaymentTypeAndCreatedAtBetween(
+                userId, PaymentType.PARTNER_STORE_BONUS, checkStart, checkEnd
+        );
     }
 
     // 거리 계산

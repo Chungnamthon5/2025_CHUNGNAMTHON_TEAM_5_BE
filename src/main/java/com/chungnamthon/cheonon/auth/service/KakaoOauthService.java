@@ -9,6 +9,7 @@ import com.chungnamthon.cheonon.auth.jwt.TokenWithExpiry;
 import com.chungnamthon.cheonon.auth.repository.RefreshTokenRepository;
 import com.chungnamthon.cheonon.global.exception.BusinessException;
 import com.chungnamthon.cheonon.global.exception.error.AuthenticationError;
+import com.chungnamthon.cheonon.point.service.PointService;
 import com.chungnamthon.cheonon.user.domain.User;
 import com.chungnamthon.cheonon.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -34,6 +35,7 @@ public class KakaoOauthService {
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final PointService pointService;
 
     @Getter
     @Value("${kakao.rest-api-key}")
@@ -122,19 +124,25 @@ public class KakaoOauthService {
             throw new BusinessException(AuthenticationError.KAKAO_EMAIL_NOT_PROVIDED);
         }
 
-        //유저 조회 or 생성
+        // 최초 가입 여부 체크 및 포인트 지급
         User user = userRepository.findByEmail(email)
-                .orElseGet(() -> userRepository.save(User.builder()
-                        .email(email)
-                        .nickname(kakaoUser.getKakao_account().getProfile().getNickname())
-                        .image(kakaoUser.getKakao_account().getProfile().getThumbnail_image_url())
-                        .role("USER")
-                        .build()));
+                .orElseGet(() -> {
+                    User newUser = userRepository.save(User.builder()
+                            .email(email)
+                            .nickname(kakaoUser.getKakao_account().getProfile().getNickname())
+                            .image(kakaoUser.getKakao_account().getProfile().getThumbnail_image_url())
+                            .role("USER")
+                            .build());
 
-        //기존 리프레시 토큰 전부 삭제 (단일 토큰 정책)
+                    pointService.rewardForSignUp(newUser.getId());
+
+                    return newUser;
+                });
+
+        // 기존 리프레시 토큰 삭제
         refreshTokenRepository.deleteAllByUser_Id(user.getId());
 
-        //새 토큰 발급 및 저장
+        // 새 토큰 발급 및 저장
         String jwtAccessToken = jwtUtil.createAccessToken(user.getId());
         TokenWithExpiry refreshTokenWithExpiry = jwtUtil.createRefreshTokenWithExpiry(user.getId());
 

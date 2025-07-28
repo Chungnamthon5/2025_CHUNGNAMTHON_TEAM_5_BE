@@ -12,6 +12,7 @@ import com.chungnamthon.cheonon.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +21,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PointService {
 
-    public static final int POINT_MEETING_PARTICIPATION = 10;
-    public static final int POINT_MEETING_CREATION = 20;
-    public static final int POINT_CHEONAN_CARD_VERIFICATION = 50;
-    public static final int POINT_AFFILIATE_BONUS = 20;
-    public static final int POINT_WEEKLY_STREAK_BONUS = 30;
+    public static final int POINT_SIGN_UP = 1000;
+    public static final int POINT_MEETING_PARTICIPATION = 50;
+    public static final int POINT_MEETING_CREATION = 70;
+    public static final int POINT_CHEONAN_CARD_VERIFICATION = 100;
+    public static final int POINT_AFFILIATE_BONUS = 200;
 
     private final PointRepository pointRepository;
     private final UserRepository userRepository;
@@ -36,160 +37,74 @@ public class PointService {
 
         List<PointHistoryResponse> myPointHistory = new ArrayList<>();
         for (Point point : pointHistories) {
-            Long pointHistoryId = point.getId();
-            PaymentType paymentType = point.getPaymentType();
-            Integer changedPoint = point.getChangedPoint();
-            LocalDateTime usedAt = point.getCreatedAt();
-
-            PointHistoryResponse pointHistoryResponse
-                    = new PointHistoryResponse(pointHistoryId, paymentType, changedPoint, usedAt);
-
-            myPointHistory.add(pointHistoryResponse);
+            myPointHistory.add(
+                    new PointHistoryResponse(
+                            point.getId(),
+                            point.getPaymentType(),
+                            point.getChangedPoint(),
+                            point.getCreatedAt()
+                    )
+            );
         }
-
         return myPointHistory;
     }
 
-    /**
-     * 모임 1회 참여 보상 포인트 지급
-     * @param userId
-     */
+    public void rewardForSignUp(Long userId) {
+        if (pointRepository.existsByUserIdAndPaymentTypeAndCreatedAtBetween(
+                userId, PaymentType.SIGN_UP,
+                LocalDateTime.now().minusYears(10), LocalDateTime.now())) {
+            return;
+        }
+        reward(userId, POINT_SIGN_UP, PaymentType.SIGN_UP);
+    }
+
     public void rewardForMeetingParticipation(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
-
-        Point latestPoint = pointRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
-                .orElse(null);
-
-        int previousPoint = 0;
-        if (latestPoint != null) {
-            previousPoint = latestPoint.getCurrentPoint();
-        }
-
-        int updatedPoint = previousPoint + POINT_MEETING_PARTICIPATION;
-
-        Point point = Point.builder()
-                .user(user)
-                .paymentType(PaymentType.MEETING_PARTICIPATION)
-                .changedPoint(POINT_MEETING_PARTICIPATION)
-                .currentPoint(updatedPoint)
-                .build();
-
-        pointRepository.save(point);
+        if (isOverWeeklyLimit(userId, PaymentType.MEETING_PARTICIPATION, 3)) return;
+        reward(userId, POINT_MEETING_PARTICIPATION, PaymentType.MEETING_PARTICIPATION);
     }
 
-    /**
-     * 모임 개설 보상 포인트 지급
-     * @param userId
-     */
     public void rewardForMeetingCreation(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
-
-        Point latestPoint = pointRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
-                .orElse(null);
-
-        int previousPoint = 0;
-        if (latestPoint != null) {
-            previousPoint = latestPoint.getCurrentPoint();
-        }
-
-        int updatedPoint = previousPoint + POINT_MEETING_CREATION;
-
-        Point point = Point.builder()
-                .user(user)
-                .paymentType(PaymentType.MEETING_CREATION)
-                .changedPoint(POINT_MEETING_CREATION)
-                .currentPoint(updatedPoint)
-                .build();
-
-        pointRepository.save(point);
+        if (isOverWeeklyLimit(userId, PaymentType.MEETING_CREATION, 1)) return;
+        reward(userId, POINT_MEETING_CREATION, PaymentType.MEETING_CREATION);
     }
 
-    /**
-     * 천안사랑카드 인증 보상 포인트 지급
-     * @param userId
-     */
-    public Point rewardForCheonanCardVerification(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
+    public void rewardForReceiptVerification(Long userId, boolean isAffiliate) {
+        PaymentType type = isAffiliate ? PaymentType.PARTNER_STORE_BONUS : PaymentType.PAYMENT_VERIFICATION;
+        int pointAmount = isAffiliate ? POINT_AFFILIATE_BONUS : POINT_CHEONAN_CARD_VERIFICATION;
 
-        Point latestPoint = pointRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
-                .orElse(null);
-
-        int previousPoint = 0;
-        if (latestPoint != null) {
-            previousPoint = latestPoint.getCurrentPoint();
-        }
-
-        int updatedPoint = previousPoint + POINT_CHEONAN_CARD_VERIFICATION;
-
-        Point point = Point.builder()
-                .user(user)
-                .paymentType(PaymentType.PAYMENT_VERIFICATION)
-                .changedPoint(POINT_CHEONAN_CARD_VERIFICATION)
-                .currentPoint(updatedPoint)
-                .build();
-
-        pointRepository.save(point);
-        return point;
-    }
-
-    /**
-     * 제휴 업체 인증 보상 포인트 지급
-     * @param userId
-     */
-    public void rewardForAffiliateStoreProof(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
-
-        Point latestPoint = pointRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
-                .orElse(null);
-
-        int previousPoint = 0;
-        if (latestPoint != null) {
-            previousPoint = latestPoint.getCurrentPoint();
-        }
-
-        int updatedPoint = previousPoint + POINT_AFFILIATE_BONUS;
-
-        Point point = Point.builder()
-                .user(user)
-                .paymentType(PaymentType.PARTNER_STORE_BONUS)
-                .changedPoint(POINT_AFFILIATE_BONUS)
-                .currentPoint(updatedPoint)
-                .build();
-
-        pointRepository.save(point);
-    }
-
-    public void rewardForWeeklyStreakParticipation(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
-
-        Point latestPoint = pointRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
-                .orElse(null);
-
-        int previousPoint = 0;
-        if (latestPoint != null) {
-            previousPoint = latestPoint.getCurrentPoint();
-        }
-
-        int updatedPoint = previousPoint + POINT_WEEKLY_STREAK_BONUS;
-
-        Point point = Point.builder()
-                .user(user)
-                .paymentType(PaymentType.WEEKLY_STREAK_BONUS)
-                .changedPoint(POINT_WEEKLY_STREAK_BONUS)
-                .currentPoint(updatedPoint)
-                .build();
-
-        pointRepository.save(point);
+        if (isOverWeeklyLimit(userId, type, 5)) return;
+        reward(userId, pointAmount, type);
     }
 
     public Long getCurrentPoint(Long userId) {
         return pointRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
-                .map(point -> (long) point.getCurrentPoint())
+                .map(p -> (long) p.getCurrentPoint())
                 .orElse(0L);
+    }
+
+    private boolean isOverWeeklyLimit(Long userId, PaymentType type, int limit) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime monday = now.with(DayOfWeek.MONDAY).toLocalDate().atStartOfDay();
+        return pointRepository.findByUserIdAndPaymentTypeAndCreatedAtBetween(userId, type, monday, now).size() >= limit;
+    }
+
+    private void reward(Long userId, int changedPoint, PaymentType type) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
+
+        int previousPoint = pointRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
+                .map(Point::getCurrentPoint)
+                .orElse(0);
+
+        int updatedPoint = previousPoint + changedPoint;
+
+        Point point = Point.builder()
+                .user(user)
+                .paymentType(type)
+                .changedPoint(changedPoint)
+                .currentPoint(updatedPoint)
+                .build();
+
+        pointRepository.save(point);
     }
 }

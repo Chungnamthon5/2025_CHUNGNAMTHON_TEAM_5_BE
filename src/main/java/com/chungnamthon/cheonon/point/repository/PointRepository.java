@@ -37,4 +37,6 @@ public interface PointRepository extends JpaRepository<Point, Long> {
     int sumPointByUserIdAndPeriod(@Param("userId") Long userId,
                                   @Param("start") LocalDateTime start,
                                   @Param("end") LocalDateTime end);
+    List<Point> findByUserIdAndPaymentTypeAndCreatedAtBetween(
+            Long userId, PaymentType type, LocalDateTime start, LocalDateTime end);
 }
