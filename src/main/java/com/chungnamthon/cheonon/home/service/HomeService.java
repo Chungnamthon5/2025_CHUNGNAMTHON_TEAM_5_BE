@@ -77,7 +77,7 @@ public class HomeService {
 
     private Long getCurrentPointIfLoggedIn(Long userId) {
         if (userId == null) {
-            return null;
+            return 0L;
         }
 
         try {
