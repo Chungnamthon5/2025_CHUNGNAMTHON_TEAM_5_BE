@@ -33,11 +33,12 @@ public interface MerchantRepository extends JpaRepository<Merchant, Long> {
          WHERE m.latitude  BETWEEN :southLat AND :northLat
            AND m.longitude BETWEEN :westLng  AND :eastLng
         """)
-    List<Merchant> findMerchantsInBounds(
+    Page<Merchant> findMerchantsInBounds(
             @Param("southLat") Double southLat,
             @Param("northLat") Double northLat,
             @Param("westLng")  Double westLng,
-            @Param("eastLng")  Double eastLng
+            @Param("eastLng")  Double eastLng,
+            Pageable pageable
     );
 
     //name 이 keyword 와 대소문자 구분 없이 정확히 일치하는 Merchant만 페이징 조회
