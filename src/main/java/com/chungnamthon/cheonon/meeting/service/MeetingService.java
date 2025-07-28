@@ -285,8 +285,13 @@ public class MeetingService {
             userId = jwtUtil.getUserIdFromToken(token);
         }
 
-        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
-        Status status = meetingUser.getStatus();
+        Status status;
+        if (meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId) == null) {
+            status = null;
+        } else {
+            MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+            status = meetingUser.getStatus();
+        }
 
         boolean isHost = false;
         if (userId != null) {
