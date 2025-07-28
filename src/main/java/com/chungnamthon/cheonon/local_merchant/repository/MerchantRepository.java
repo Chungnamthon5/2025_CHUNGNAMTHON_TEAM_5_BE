@@ -42,5 +42,6 @@ public interface MerchantRepository extends JpaRepository<Merchant, Long> {
     );
 
     //name 이 keyword 와 대소문자 구분 없이 정확히 일치하는 Merchant만 페이징 조회
-    Page<Merchant> findByNameEqualsIgnoreCase(String name, Pageable pageable);
+    @Query("SELECT m FROM Merchant m WHERE m.name LIKE %:keyword%")
+    Page<Merchant> findByNameEqualsIgnoreCase(@Param(value = "keyword") String keyword, Pageable pageable);
 }
