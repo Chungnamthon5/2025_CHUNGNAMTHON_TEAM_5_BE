@@ -97,6 +97,8 @@ public class MeetingService {
                 throw new BusinessException(MeetingError.ALREADY_JOINED_MEETING);
             } else if (meetingUser.getStatus().equals(Status.KICKED)) {
                 throw new BusinessException(MeetingError.KICKED_USER_CANNOT_REJOIN);
+            } else if (meetingUser.getStatus().equals(Status.REQUESTED)) {
+                throw new BusinessException(MeetingError.ALREADY_REQUESTED_MEETING);
             }
         }
 
