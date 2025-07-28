@@ -1,5 +1,7 @@
 package com.chungnamthon.cheonon.map.service;
 
+import com.chungnamthon.cheonon.global.exception.BusinessException;
+import com.chungnamthon.cheonon.global.exception.error.MapError;
 import com.chungnamthon.cheonon.map.domain.Affiliate;
 import com.chungnamthon.cheonon.map.dto.AffiliateDto;
 import com.chungnamthon.cheonon.map.dto.AffiliateHomePreviewResponse;
@@ -38,7 +40,7 @@ public class AffiliateService {
 
     public AffiliateDto detail(Long id) {
         Affiliate a = repo.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Affiliate not found: " + id));
+                .orElseThrow(() -> new BusinessException(MapError.AFFILIATE_NOT_FOUND));
         return AffiliateDto.builder()
                 .id(a.getId())
                 .merchantSeq(a.getMerchantSeq())
