@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
@@ -126,8 +127,11 @@ public class MerchantService {
             Double swLat, Double swLng,
             Double neLat, Double neLng) {
 
+        // 0페이지(인덱스), 최대 50개
+        Pageable limit50 = PageRequest.of(0, 50);
         return merchantRepository
-                .findMerchantsInBounds(swLat, neLat, swLng, neLng)
+                .findMerchantsInBounds(swLat, neLat, swLng, neLng, limit50)
+                .getContent()
                 .stream()
                 .map(MerchantDto::fromEntity)
                 .collect(toList());
