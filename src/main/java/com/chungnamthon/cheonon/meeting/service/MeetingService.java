@@ -5,6 +5,7 @@ import com.chungnamthon.cheonon.global.exception.BusinessException;
 import com.chungnamthon.cheonon.global.exception.error.AuthenticationError;
 import com.chungnamthon.cheonon.global.exception.error.CommonError;
 import com.chungnamthon.cheonon.global.exception.error.MeetingError;
+import com.chungnamthon.cheonon.global.service.S3Service;
 import com.chungnamthon.cheonon.meeting.domain.Meeting;
 import com.chungnamthon.cheonon.meeting.domain.MeetingUser;
 import com.chungnamthon.cheonon.meeting.domain.value.Location;
@@ -21,6 +22,7 @@ import com.chungnamthon.cheonon.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,16 +36,17 @@ public class MeetingService {
     private final UserRepository userRepository;
     private final PointService pointService;
     private final JwtUtil jwtUtil;
+    private final S3Service s3Service;
 
     /**
      * 모임 생성 메서드
-     *
      * @param token
      * @param createMeetingRequest
-     * @return createMeetingResponse (meetingId)
+     * @param image
+     * @return CreateMeetingResponse
      */
     @Transactional
-    public CreateMeetingResponse createMeeting(String token, CreateMeetingRequest createMeetingRequest) {
+    public CreateMeetingResponse createMeeting(String token, CreateMeetingRequest createMeetingRequest, MultipartFile image) {
         Long userId = jwtUtil.getUserIdFromToken(token);
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
@@ -53,7 +56,12 @@ public class MeetingService {
         Location location = createMeetingRequest.location();
         String openChatUrl = createMeetingRequest.openChatUrl();
         Schedule schedule = createMeetingRequest.schedule();
-        String imageUrl = createMeetingRequest.imageUrl();
+
+        String imageUrl = null;
+        if (image != null && !image.isEmpty()) {
+            S3Service.S3UploadResult uploadResult = s3Service.uploadFile(image);
+            imageUrl = uploadResult.getFileUrl();
+        }
 
         Meeting meeting = Meeting.builder()
                 .user(user)
@@ -80,7 +88,6 @@ public class MeetingService {
 
     /**
      * 모임 가입 신청 메서드
-     *
      * @param token
      * @param meetingId
      * @return JoinMeetingResponse (meetingId)
@@ -215,7 +222,6 @@ public class MeetingService {
 
     /**
      * 내 모임 리스트 조회
-     *
      * @param token
      * @param meetingStatus
      * @return List<MyMeetingListResponse>
@@ -267,7 +273,6 @@ public class MeetingService {
 
     /**
      * 모임 상세 정보 조회
-     *
      * @param meetingId
      * @return meetingDetailResponse (meetingId, title, description, location, schedule, imageUrl, openChatUrl)
      */

@@ -27,9 +27,6 @@ public record CreateMeetingRequest(
         String openChatUrl,
 
         @NotNull(message = "스케줄 타입은 필수입니다.")
-        Schedule schedule,
-
-        @Schema(nullable = true)
-        String imageUrl
+        Schedule schedule
 ) {
 }
