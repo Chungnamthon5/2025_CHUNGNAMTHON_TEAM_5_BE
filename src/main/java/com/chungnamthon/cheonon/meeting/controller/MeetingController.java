@@ -10,6 +10,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -99,13 +100,18 @@ public class MeetingController implements MeetingControllerSwagger {
         return ResponseDto.of(meetingUsersListResponses, "Successfully retrieved meeting members.");
     }
 
-    @PatchMapping("/{meetingId}")
+    @PatchMapping
     public ResponseDto<UpdateMeetingResponse> updateMeeting(
             @RequestHeader("Authorization") String token,
-            @PathVariable("meetingId") Long meetingId,
-            @RequestBody @Valid UpdateMeetingRequest updateMeetingRequest
-    ) {
-        UpdateMeetingResponse updateMeetingResponse = meetingService.updateMeetingInformation(token, meetingId, updateMeetingRequest);
+            @RequestPart("meeting") @Valid String requestJson,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestPart("meetingId") String meetingId
+    ) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        UpdateMeetingRequest updateMeetingRequest = objectMapper.readValue(requestJson, UpdateMeetingRequest.class);
+
+        Long realMeetingId = Long.parseLong(meetingId);
+        UpdateMeetingResponse updateMeetingResponse = meetingService.updateMeetingInformation(token, realMeetingId, updateMeetingRequest);
         return ResponseDto.of(updateMeetingResponse, "Successfully updated a meeting information.");
     }
 

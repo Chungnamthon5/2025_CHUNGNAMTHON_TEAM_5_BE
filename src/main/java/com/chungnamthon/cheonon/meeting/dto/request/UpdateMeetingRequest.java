@@ -6,6 +6,8 @@ import jakarta.validation.constraints.*;
 
 public record UpdateMeetingRequest(
 
+        Long meetingId,
+
         @Size(max = 24, message = "제목은 24자 이내여야 합니다.")
         String title,
 

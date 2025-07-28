@@ -768,9 +768,10 @@ public interface MeetingControllerSwagger {
     )
     ResponseDto<UpdateMeetingResponse> updateMeeting(
             @RequestHeader("Authorization") String token,
-            @PathVariable("meetingId") Long meetingId,
-            @RequestBody @Valid UpdateMeetingRequest updateMeetingRequest
-    );
+            @RequestPart("meeting") @Valid String requestJson,
+            @RequestParam(value = "image", required = false) MultipartFile image,
+            @RequestPart("meetingId") String meetingId
+    ) throws JsonProcessingException;
 
     @DeleteMapping("/{meetingId}")
     @Operation(
