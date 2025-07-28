@@ -32,4 +32,9 @@ public interface ReceiptRepository extends JpaRepository<Receipt, Long> {
     boolean existsByPreview(ReceiptPreview preview);
 
     List<Receipt> findByMerchantAndCreatedAtAfter(Merchant merchant, LocalDateTime thirtyMinutesAgo);
+
+    @Query("SELECT COUNT(r) FROM Receipt r WHERE r.user.id = :userId AND r.createdAt BETWEEN :start AND :end")
+    int countReceiptByUserIdAndPeriod(@Param("userId") Long userId,
+                                      @Param("start") LocalDateTime start,
+                                      @Param("end") LocalDateTime end);
 }
