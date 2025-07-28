@@ -2,9 +2,11 @@ package com.chungnamthon.cheonon.meeting.dto.response;
 
 import com.chungnamthon.cheonon.meeting.domain.value.Location;
 import com.chungnamthon.cheonon.meeting.domain.value.Schedule;
+import com.chungnamthon.cheonon.meeting.domain.value.Status;
 
 public record MeetingDetailResponse(
         Long meetingId,
+        Status status,
         boolean isHost,
         String hostName,
         String title,
