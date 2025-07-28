@@ -28,7 +28,7 @@ public class SearchService {
                 .category(m.getCategory())
                 .lat(m.getLatitude())
                 .lng(m.getLongitude())
-                .type(m.getIsAffiliate() ? "AFFILIATE" : "MERCHANT")
+                .isAffiliate(m.getIsAffiliate())
                 .build()
         );
     }
