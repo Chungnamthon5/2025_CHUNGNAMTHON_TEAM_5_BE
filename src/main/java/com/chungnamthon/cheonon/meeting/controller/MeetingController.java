@@ -5,9 +5,13 @@ import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.response.*;
 import com.chungnamthon.cheonon.meeting.service.MeetingService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -18,12 +22,16 @@ public class MeetingController implements MeetingControllerSwagger {
 
     private final MeetingService meetingService;
 
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseDto<CreateMeetingResponse> createMeeting(
             @RequestHeader("Authorization") String token,
-            @RequestBody @Valid CreateMeetingRequest createMeetingRequest
-    ) {
-        CreateMeetingResponse createMeetingResponse = meetingService.createMeeting(token, createMeetingRequest);
+            @RequestPart("meeting") @Valid String requestJson,
+            @RequestParam(value = "image", required = false) MultipartFile image
+    ) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        CreateMeetingRequest createMeetingRequest = objectMapper.readValue(requestJson, CreateMeetingRequest.class);
+
+        CreateMeetingResponse createMeetingResponse = meetingService.createMeeting(token, createMeetingRequest, image);
         return ResponseDto.of(createMeetingResponse, "The meeting was created successfully.");
     }
 

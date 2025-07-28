@@ -4,6 +4,7 @@ import com.chungnamthon.cheonon.global.payload.ResponseDto;
 import com.chungnamthon.cheonon.meeting.dto.request.CreateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.request.UpdateMeetingRequest;
 import com.chungnamthon.cheonon.meeting.dto.response.*;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -15,8 +16,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.http.MediaType;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -102,8 +105,9 @@ public interface MeetingControllerSwagger {
     )
     ResponseDto<CreateMeetingResponse> createMeeting(
             @RequestHeader("Authorization") String token,
-            @RequestBody @Valid CreateMeetingRequest createMeetingRequest
-    );
+            @RequestPart("meeting") @Valid String requestJson,
+            @RequestParam(value = "image", required = false) MultipartFile image
+    ) throws JsonProcessingException;
 
     @PostMapping("/{meetingId}/join")
     @Operation(
