@@ -1,5 +1,7 @@
 package com.chungnamthon.cheonon.local_merchant.service;
 
+import com.chungnamthon.cheonon.global.exception.BusinessException;
+import com.chungnamthon.cheonon.global.exception.error.MapError;
 import com.chungnamthon.cheonon.local_merchant.domain.Merchant;
 import com.chungnamthon.cheonon.local_merchant.dto.LocalMerchantDto;
 import com.chungnamthon.cheonon.local_merchant.dto.MerchantDto;
@@ -107,7 +109,7 @@ public class MerchantService {
 
     public MerchantDto detail(Long id) {
         Merchant m = merchantRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Merchant not found: " + id));
+                .orElseThrow(() -> new BusinessException(MapError.MERCHANT_NOT_FOUND));
         return MerchantDto.builder()
                 .id(m.getId())
                 .merchantSeq(m.getMerchantSeq())
