@@ -7,6 +7,7 @@ import com.chungnamthon.cheonon.map.dto.AffiliateHomePreviewResponse;
 import com.chungnamthon.cheonon.map.service.AffiliateService;
 import com.chungnamthon.cheonon.meeting.dto.response.MeetingPreviewResponse;
 import com.chungnamthon.cheonon.meeting.repository.MeetingRepository;
+import com.chungnamthon.cheonon.point.service.PointService;
 import com.chungnamthon.cheonon.poweruser.dto.PowerUserResponse;
 import com.chungnamthon.cheonon.poweruser.service.PowerUserService;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +24,14 @@ public class HomeService {
     private final MeetingRepository meetingRepository;
     private final AffiliateService affiliateService;
     private final PowerUserService powerUserService;
+    private final PointService pointService;
 
-    public HomeResponse getHomeData() {
+    public HomeResponse getHomeData(Long userId) {
         return HomeResponse.builder()
                 .recentMeetings(getRecentMeetings())
                 .topAffiliates(getAffiliates())
                 .powerUsers(getPowerUsersOrThrow())
+                .currentPoint(getCurrentPointIfLoggedIn(userId))
                 .build();
     }
 
@@ -69,6 +72,19 @@ public class HomeService {
         } catch (Exception e) {
             log.error("[Home] 파워 유저 데이터 조회 실패", e);
             throw new BusinessException(HomeError.POWER_USER_NOT_FOUND); // 일반 예외도 통합 처리
+        }
+    }
+
+    private Long getCurrentPointIfLoggedIn(Long userId) {
+        if (userId == null) {
+            return 0L;
+        }
+
+        try {
+            return pointService.getCurrentPoint(userId); // 또는 pointService.getCurrentPoint(userId);
+        } catch (Exception e) {
+            log.warn("[Home] 로그인 유저 포인트 조회 실패: userId={}", userId, e);
+            return null; // 실패 허용
         }
     }
 }

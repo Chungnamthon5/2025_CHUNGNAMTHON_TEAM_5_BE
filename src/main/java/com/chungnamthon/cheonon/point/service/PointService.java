@@ -186,4 +186,10 @@ public class PointService {
 
         pointRepository.save(point);
     }
+
+    public Long getCurrentPoint(Long userId) {
+        return pointRepository.findTopByUserIdOrderByCreatedAtDesc(userId)
+                .map(point -> (long) point.getCurrentPoint())
+                .orElse(0L);
+    }
 }

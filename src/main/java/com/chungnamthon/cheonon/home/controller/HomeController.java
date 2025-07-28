@@ -5,8 +5,10 @@ import com.chungnamthon.cheonon.home.dto.HomeResponse;
 import com.chungnamthon.cheonon.home.service.HomeService;
 import com.chungnamthon.cheonon.map.dto.AffiliatePreviewResponse;
 import com.chungnamthon.cheonon.map.service.AffiliateService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import com.chungnamthon.cheonon.auth.jwt.JwtUtil;
 
 import java.util.List;
 
@@ -17,11 +19,13 @@ public class HomeController {
 
     private final HomeService homeService;
     private final AffiliateService affiliateService;
+    private final JwtUtil jwtUtil;
 
     //홈 화면 정보 (모임 + 제휴업체 미리보기 등)
     @GetMapping
-    public ResponseDto<HomeResponse> getHomeData() {
-        HomeResponse response = homeService.getHomeData();
+    public ResponseDto<HomeResponse> getHomeData(HttpServletRequest request) {
+        Long userId = jwtUtil.getUserIdIfExists(request); // 토큰 없으면 null
+        HomeResponse response = homeService.getHomeData(userId);
         return ResponseDto.of(response, "홈 화면 정보 불러오기 성공");
     }
 

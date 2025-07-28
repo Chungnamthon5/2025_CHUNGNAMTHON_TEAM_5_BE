@@ -15,4 +15,5 @@ public class HomeResponse {
     private List<MeetingPreviewResponse> recentMeetings;
     private List<AffiliateHomePreviewResponse> topAffiliates;
     private List<PowerUserResponse> powerUsers;
+    private Long currentPoint; // 로그인 시에만 반환, 아니면 null
 }
