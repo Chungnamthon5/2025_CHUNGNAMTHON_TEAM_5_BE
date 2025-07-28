@@ -20,7 +20,7 @@ public class KakaoAuthController {
 
     private final KakaoOauthService kakaoOauthService;
 
-    // ✅ 1단계: 프론트가 호출할 최초 엔드포인트 (카카오 로그인 페이지로 리디렉트)
+    //프론트가 호출할 최초 엔드포인트 (카카오 로그인 페이지로 리디렉트)
     @GetMapping("")
     public ResponseEntity<Void> redirectToKakao() {
         String kakaoAuthorizeUrl = UriComponentsBuilder.fromHttpUrl("https://kauth.kakao.com/oauth/authorize")
@@ -35,7 +35,7 @@ public class KakaoAuthController {
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
-    // ✅ 2단계: 카카오에서 인가코드 받아오는 콜백 엔드포인트
+    //카카오에서 인가코드 받아오는 콜백 엔드포인트
     @GetMapping("/callback")
     public ResponseEntity<Void> kakaoLogin(@RequestParam("code") String code, HttpServletRequest request) {
         try {

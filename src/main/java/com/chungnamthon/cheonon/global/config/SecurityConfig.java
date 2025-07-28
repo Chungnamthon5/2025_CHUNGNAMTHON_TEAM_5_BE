@@ -26,7 +26,7 @@ public class SecurityConfig {
     private final JwtFilter jwtFilter;
     private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
-    // 🔹 Swagger 관련 경로 제외
+    // Swagger 관련 경로 제외
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
         return web -> web.ignoring().requestMatchers(
@@ -37,7 +37,7 @@ public class SecurityConfig {
         );
     }
 
-    // 🔹 JWT, 인증 처리 포함된 필터 체인
+    //JWT, 인증 처리 포함된 필터 체인
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -68,13 +68,13 @@ public class SecurityConfig {
         return http.build();
     }
 
-    // 🔹 CORS 설정
+    //CORS 설정
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
 
-        // 🔸 프론트엔드 주소 명시 (필요시 여러 개 추가 가능)
+        // 프론트엔드 주소
         config.setAllowedOrigins(List.of("http://localhost:5173", "https://2025-chungnamthon-team-5-fe.vercel.app"));
 
         config.addAllowedHeader("*");

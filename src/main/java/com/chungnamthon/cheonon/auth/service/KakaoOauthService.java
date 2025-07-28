@@ -86,11 +86,11 @@ public class KakaoOauthService {
         HttpEntity<Void> request = new HttpEntity<>(headers);
 
         try {
-            // 1차: 원본 JSON 문자열 로그 찍기
+            //원본 JSON 문자열 로그 찍기
             ResponseEntity<String> rawResponse = restTemplate.exchange(userInfoUri, HttpMethod.GET, request, String.class);
-            System.out.println("💬 Kakao User Raw Response: " + rawResponse.getBody());
+            System.out.println("Kakao User Raw Response: " + rawResponse.getBody());
 
-            // 2차: DTO로 파싱 시도
+            //DTO로 파싱 시도
             ResponseEntity<KakaoUserResponse> response = restTemplate.exchange(userInfoUri, HttpMethod.GET, request, KakaoUserResponse.class);
             KakaoUserResponse body = response.getBody();
 
@@ -101,7 +101,7 @@ public class KakaoOauthService {
 
             return body;
         } catch (HttpStatusCodeException e) {
-            System.out.println("❗ Kakao API Error Response: " + e.getResponseBodyAsString());
+            System.out.println("Kakao API Error Response: " + e.getResponseBodyAsString());
             throw new BusinessException(AuthenticationError.KAKAO_USER_FETCH_FAIL);
         } catch (RestClientException e) {
             throw new BusinessException(AuthenticationError.KAKAO_USER_FETCH_FAIL);
@@ -122,7 +122,7 @@ public class KakaoOauthService {
             throw new BusinessException(AuthenticationError.KAKAO_EMAIL_NOT_PROVIDED);
         }
 
-        // 🔹 유저 조회 or 생성
+        //유저 조회 or 생성
         User user = userRepository.findByEmail(email)
                 .orElseGet(() -> userRepository.save(User.builder()
                         .email(email)
@@ -131,10 +131,10 @@ public class KakaoOauthService {
                         .role("USER")
                         .build()));
 
-        // 🔹 기존 리프레시 토큰 전부 삭제 (단일 토큰 정책)
+        //기존 리프레시 토큰 전부 삭제 (단일 토큰 정책)
         refreshTokenRepository.deleteAllByUser_Id(user.getId());
 
-        // 🔹 새 토큰 발급 및 저장
+        //새 토큰 발급 및 저장
         String jwtAccessToken = jwtUtil.createAccessToken(user.getId());
         TokenWithExpiry refreshTokenWithExpiry = jwtUtil.createRefreshTokenWithExpiry(user.getId());
 

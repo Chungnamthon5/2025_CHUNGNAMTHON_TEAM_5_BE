@@ -25,7 +25,7 @@ public class RefreshToken {
     @Column(name = "expired_at",nullable = false)
     private LocalDateTime expiredAt;
 
-    // 🔽 리프레시 토큰은 하나의 유저에 속한다
+    //리프레시 토큰은 하나의 유저에 속한다
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;

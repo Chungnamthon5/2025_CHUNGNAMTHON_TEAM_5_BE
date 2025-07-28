@@ -1,5 +1,7 @@
 package com.chungnamthon.cheonon.home.service;
 
+import com.chungnamthon.cheonon.global.exception.BusinessException;
+import com.chungnamthon.cheonon.global.exception.error.HomeError;
 import com.chungnamthon.cheonon.home.dto.HomeResponse;
 import com.chungnamthon.cheonon.map.dto.AffiliateHomePreviewResponse;
 import com.chungnamthon.cheonon.map.service.AffiliateService;
@@ -24,39 +26,49 @@ public class HomeService {
 
     public HomeResponse getHomeData() {
         return HomeResponse.builder()
-                .recentMeetings(getRecentMeetingsSafely())
-                .topAffiliates(getAffiliatesSafely())
-                .powerUsers(getPowerUsersSafely())
+                .recentMeetings(getRecentMeetings())
+                .topAffiliates(getAffiliates())
+                .powerUsers(getPowerUsersOrThrow())
                 .build();
     }
 
-    private List<MeetingPreviewResponse> getRecentMeetingsSafely() {
+    //모임: 실패 허용, 로그만 찍고 빈 리스트 반환
+    private List<MeetingPreviewResponse> getRecentMeetings() {
         try {
             return meetingRepository.findTop3ByOrderByCreatedAtDesc()
                     .stream()
                     .map(MeetingPreviewResponse::from)
                     .toList();
         } catch (Exception e) {
-            log.error("❗ [Home] 모임 데이터 조회 실패", e);
+            log.error("[Home] 모임 데이터 조회 실패", e);
             return List.of();
         }
     }
 
-    private List<AffiliateHomePreviewResponse> getAffiliatesSafely() {
+    //제휴업체: 실패 허용, 로그만 찍고 빈 리스트 반환
+    private List<AffiliateHomePreviewResponse> getAffiliates() {
         try {
             return affiliateService.getAffiliateList();
         } catch (Exception e) {
-            log.error("❗ [Home] 제휴업체 데이터 조회 실패", e);
+            log.error("[Home] 제휴 업체 데이터 조회 실패", e);
             return List.of();
         }
     }
 
-    private List<PowerUserResponse> getPowerUsersSafely() {
+    //파워유저: 실패 시 BusinessException 발생 → 클라이언트에게 에러 전달
+    private List<PowerUserResponse> getPowerUsersOrThrow() {
         try {
-            return powerUserService.getRecentPowerUsers();
+            List<PowerUserResponse> users = powerUserService.getRecentPowerUsers();
+            if (users.isEmpty()) {
+                throw new BusinessException(HomeError.POWER_USER_NOT_FOUND);
+            }
+            return users;
+        } catch (BusinessException e) {
+            // 도메인 예외는 그대로 던짐
+            throw e;
         } catch (Exception e) {
-            log.error("❗ [Home] 파워유저 데이터 조회 실패", e);
-            return List.of();
+            log.error("[Home] 파워 유저 데이터 조회 실패", e);
+            throw new BusinessException(HomeError.POWER_USER_NOT_FOUND); // 일반 예외도 통합 처리
         }
     }
 }

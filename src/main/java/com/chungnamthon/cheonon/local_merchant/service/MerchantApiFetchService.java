@@ -23,14 +23,14 @@ public class MerchantApiFetchService {
     private static final int MAX_PAGE = 353;
 
     public void fetchAndSaveAll() {
-        log.info("🚀 가맹점 데이터 수집 시작 (단일스레드 모드)");
+        log.info("가맹점 데이터 수집 시작 (단일스레드 모드)");
 
         int totalProcessed = 0;
         int totalSaved = 0;
         int totalSkipped = 0;
 
         for (String bizType : BIZ_TYPE_LIST) {
-            log.info("📂 카테고리 처리 시작: {} ({})", bizType, getCategoryName(bizType));
+            log.info("카테고리 처리 시작: {} ({})", bizType, getCategoryName(bizType));
 
             int categoryProcessed = 0;
 
@@ -39,7 +39,7 @@ public class MerchantApiFetchService {
                     var dtoList = apiClient.fetchMerchants(bizType, page);
 
                     if (dtoList.isEmpty()) {
-                        log.info("📦 데이터 없음: bizType={}, page={} - 카테고리 완료", bizType, page);
+                        log.info("데이터 없음: bizType={}, page={} - 카테고리 완료", bizType, page);
                         break;
                     }
 
@@ -50,7 +50,7 @@ public class MerchantApiFetchService {
                             totalSaved++;
 
                         } catch (Exception e) {
-                            log.warn("⚠️ 저장 스킵/실패: {} - {}", dto.getName(), e.getMessage());
+                            log.warn("저장 스킵/실패: {} - {}", dto.getName(), e.getMessage());
                             totalSkipped++;
                         }
                     }
@@ -60,7 +60,7 @@ public class MerchantApiFetchService {
 
                     // 100페이지마다 진행상황 로그
                     if (page % 100 == 0) {
-                        log.info("📈 진행률: bizType={}, page={}, 카테고리누적={}",
+                        log.info("진행률: bizType={}, page={}, 카테고리누적={}",
                                 bizType, page, categoryProcessed);
                     }
 
@@ -68,15 +68,15 @@ public class MerchantApiFetchService {
                     Thread.sleep(50);
 
                 } catch (Exception e) {
-                    log.error("💥 페이지 처리 실패: bizType={}, page={} - {}",
+                    log.error("페이지 처리 실패: bizType={}, page={} - {}",
                             bizType, page, e.getMessage());
                 }
             }
 
-            log.info("✅ 카테고리 완료: {} - 처리={}", bizType, categoryProcessed);
+            log.info("카테고리 완료: {} - 처리={}", bizType, categoryProcessed);
         }
 
-        log.info("🎯 전체 수집 완료! 총처리: {}, 신규저장: {}, 스킵: {}",
+        log.info("전체 수집 완료 총처리: {}, 신규저장: {}, 스킵: {}",
                 totalProcessed, totalSaved, totalSkipped);
     }
 

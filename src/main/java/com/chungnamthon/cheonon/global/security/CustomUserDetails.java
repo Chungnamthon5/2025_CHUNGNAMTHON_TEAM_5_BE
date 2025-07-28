@@ -21,13 +21,12 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 고정 권한 현제는 크게 중요하지 않음
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
     public String getPassword() {
-        return null; // 카카오는 비밀번호 없음
+        return null;
     }
 
     @Override

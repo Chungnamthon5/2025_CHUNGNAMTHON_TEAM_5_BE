@@ -61,7 +61,7 @@ public class JwtUtil {
         return new TokenWithExpiry(token, expiry);
     }
 
-    // ✅ 핵심 수정 부분 - 토큰 전처리 로직 추가
+    // 토큰 전처리 로직
     public Long getUserIdFromToken(String token) {
         // 토큰 전처리
         token = preprocessToken(token);
@@ -81,7 +81,7 @@ public class JwtUtil {
         }
     }
 
-    // ✅ 토큰 검증도 수정
+    //토큰 검증
     public boolean validateToken(String token) {
         try {
             // 토큰 전처리
@@ -98,7 +98,7 @@ public class JwtUtil {
         }
     }
 
-    // ✅ resolveToken도 trim 추가
+    //resolveToken
     public String resolveToken(HttpServletRequest request) {
         String bearer = request.getHeader("Authorization");
         if (bearer != null && bearer.startsWith("Bearer ")) {
@@ -108,7 +108,7 @@ public class JwtUtil {
         return null;
     }
 
-    // ✅ 토큰 전처리 메서드 추가
+    //토큰 전처리 메서드
     public String preprocessToken(String token) {
         if (token == null) {
             throw new IllegalArgumentException("JWT token cannot be null");

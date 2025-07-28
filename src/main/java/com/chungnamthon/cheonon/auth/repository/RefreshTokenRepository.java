@@ -12,7 +12,6 @@ public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long
 
     Optional<RefreshToken> findByToken(String token);
 
-    // ✅ 수정된 메서드들:
     List<RefreshToken> findByUser_Id(Long userId);
 
     Optional<RefreshToken> findTopByUserIdOrderByExpiredAtDesc(Long userId);
