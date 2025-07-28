@@ -32,4 +32,9 @@ public interface PointRepository extends JpaRepository<Point, Long> {
     List<Point> findByUserIdOrderByCreatedAtDesc(Long userId);
 
     boolean existsByUserIdAndPaymentTypeAndCreatedAtBetween(Long userId, PaymentType paymentType, LocalDateTime checkStart, LocalDateTime checkEnd);
+
+    @Query("SELECT COALESCE(SUM(p.changedPoint), 0) FROM Point p WHERE p.user.id = :userId AND p.createdAt BETWEEN :start AND :end")
+    int sumPointByUserIdAndPeriod(@Param("userId") Long userId,
+                                  @Param("start") LocalDateTime start,
+                                  @Param("end") LocalDateTime end);
 }
