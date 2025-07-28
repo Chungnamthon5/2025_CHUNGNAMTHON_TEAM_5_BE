@@ -34,7 +34,7 @@ public class PowerUser extends BaseEntity {
         this.weekOf = weekOf;
     }
 
-    public void setRank(int ranking) {
+    public void setRank(int rank) {
         this.ranking = ranking;
     }
 
