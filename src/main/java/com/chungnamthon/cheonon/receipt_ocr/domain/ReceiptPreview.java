@@ -4,6 +4,7 @@ import com.chungnamthon.cheonon.local_merchant.domain.Merchant;
 import com.chungnamthon.cheonon.user.domain.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,7 +42,8 @@ public class ReceiptPreview {
     @Column(name = "user_longitude")
     private Double userLongitude;
 
-    @Column(updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreatedDate
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }
 
