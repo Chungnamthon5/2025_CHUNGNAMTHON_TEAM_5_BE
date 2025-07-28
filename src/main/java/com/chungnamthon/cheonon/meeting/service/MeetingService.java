@@ -280,6 +280,9 @@ public class MeetingService {
             userId = jwtUtil.getUserIdFromToken(token);
         }
 
+        MeetingUser meetingUser = meetingUserRepository.findByUserIdAndMeetingId(userId, meetingId);
+        Status status = meetingUser.getStatus();
+
         boolean isHost = false;
         if (userId != null) {
             isHost = userId.equals(meeting.getUser().getId());
@@ -295,7 +298,7 @@ public class MeetingService {
         String openChatUrl = meeting.getOpenChatUrl();
 
         MeetingDetailResponse meetingDetailResponse
-                = new MeetingDetailResponse(meetingId, isHost, hostName, title, description, location, schedule, imageUrl, openChatUrl);
+                = new MeetingDetailResponse(meetingId, status, isHost, hostName, title, description, location, schedule, imageUrl, openChatUrl);
 
         return meetingDetailResponse;
     }
