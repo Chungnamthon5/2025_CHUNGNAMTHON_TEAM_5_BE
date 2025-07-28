@@ -129,4 +129,13 @@ public class JwtUtil {
 
         return token;
     }
+
+    // 로그인되어 있을때만 userid 반환
+    public Long getUserIdIfExists(HttpServletRequest request) {
+        String token = resolveToken(request);
+        if (token != null && validateToken(token)) {
+            return getUserIdFromToken(token);
+        }
+        return null;
+    }
 }
