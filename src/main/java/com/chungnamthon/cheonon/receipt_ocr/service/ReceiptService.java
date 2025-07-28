@@ -1,21 +1,26 @@
 package com.chungnamthon.cheonon.receipt_ocr.service;
 
+import com.chungnamthon.cheonon.global.exception.BusinessException;
+import com.chungnamthon.cheonon.global.exception.error.AuthenticationError;
+import com.chungnamthon.cheonon.global.exception.error.ReceiptError;
 import com.chungnamthon.cheonon.local_merchant.domain.Merchant;
 import com.chungnamthon.cheonon.local_merchant.repository.MerchantRepository;
 import com.chungnamthon.cheonon.point.domain.Point;
 import com.chungnamthon.cheonon.point.domain.value.PaymentType;
 import com.chungnamthon.cheonon.point.repository.PointRepository;
+import com.chungnamthon.cheonon.point.service.PointService;
 import com.chungnamthon.cheonon.receipt_ocr.client.NaverOcrClient;
 import com.chungnamthon.cheonon.receipt_ocr.domain.Receipt;
 import com.chungnamthon.cheonon.receipt_ocr.domain.ReceiptPreview;
 import com.chungnamthon.cheonon.receipt_ocr.dto.ReceiptConfirmResponseDto;
 import com.chungnamthon.cheonon.receipt_ocr.dto.ReceiptPreviewResponseDto;
+import com.chungnamthon.cheonon.receipt_ocr.dto.ReceiptVerificationRequest;
 import com.chungnamthon.cheonon.receipt_ocr.repository.ReceiptPreviewRepository;
 import com.chungnamthon.cheonon.receipt_ocr.repository.ReceiptRepository;
 import com.chungnamthon.cheonon.user.domain.User;
 import com.chungnamthon.cheonon.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,39 +33,39 @@ import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class ReceiptService {
+
     private final NaverOcrClient ocrClient;
     private final MerchantRepository merchantRepo;
     private final UserRepository userRepo;
     private final ReceiptPreviewRepository previewRepo;
     private final ReceiptRepository receiptRepo;
     private final PointRepository pointRepo;
+    private final PointService pointService;
 
     private static final Pattern DATE_PATTERN = Pattern.compile("(\\d{4}[.\\-/]\\d{1,2}[.\\-/]\\d{1,2})");
-    private static final Pattern TIME_PATTERN = Pattern.compile("(\\d{1,2}:[\\s]*\\d{2}(?::[\\s]*\\d{2})?)");
-    // 코나 결제 키워드 목록
+    private static final Pattern TIME_PATTERN = Pattern.compile("\\b(\\d{1,2}):\\s*(\\d{2})(?::\\s*(\\d{2}))?\\b");
     private static final List<String> REQUIRED_CARD_KEYWORDS = List.of("코나", "코나카드", "KONAI", "KONA");
+    private static final double VERIFICATION_RADIUS_METERS = 100.0;
 
-    public ReceiptPreviewResponseDto preview(MultipartFile file, Long userId) throws Exception {
+    public ReceiptPreviewResponseDto preview(MultipartFile file, Long userId, ReceiptVerificationRequest receiptVerificationRequest) throws Exception {
         String text = ocrClient.parseText(file.getBytes());
+        String flattenedText = text.replaceAll("[\\s\\n]+", " ");
 
-        // 1) Cheonan 주소 포함 여부 검증x
-        if (!text.contains("천안")) {
-            throw new IllegalArgumentException("Receipt must be for a store in Cheonan.");
+        if (!flattenedText.contains("천안")) {
+            throw new BusinessException(ReceiptError.INVALID_CITY);
         }
-        // 2) Kona 결제 여부 검증 (키워드 중 하나만 포함돼도 OK)
-        boolean hasKona = REQUIRED_CARD_KEYWORDS.stream()
-                .anyMatch(text::contains);
+        boolean hasKona = REQUIRED_CARD_KEYWORDS.stream().anyMatch(flattenedText::contains);
         if (!hasKona) {
-            throw new IllegalArgumentException("영수증에 코나 결제 내역이 없습니다.");
+            throw new BusinessException(ReceiptError.INVALID_CARD_TYPE);
         }
 
-        // 3) OCR 텍스트 전체에서 숫자 추출 후, 가맹점 ID와 매칭
         Pattern numberPattern = Pattern.compile("\\d+");
-        Matcher numberMatcher = numberPattern.matcher(text);
+        Matcher numberMatcher = numberPattern.matcher(flattenedText);
         Merchant merchant = null;
         while (numberMatcher.find()) {
             String potentialId = numberMatcher.group();
@@ -71,86 +76,131 @@ public class ReceiptService {
             }
         }
         if (merchant == null) {
-            throw new EntityNotFoundException("Merchant not found in OCR text.");
+            throw new BusinessException(ReceiptError.MERCHANT_NOT_FOUND);
         }
 
-        // 4) 방문 일시 파싱
+        if (receiptVerificationRequest.latitude() == null || receiptVerificationRequest.longitude() == null)
+            throw new BusinessException(ReceiptError.USER_LOCATION_REQUIRED);
+        if (merchant.getLatitude() == null || merchant.getLongitude() == null)
+            throw new BusinessException(ReceiptError.MERCHANT_LOCATION_MISSING);
+
+        double distance = calculateDistance(
+                receiptVerificationRequest.latitude(), receiptVerificationRequest.longitude(),
+                merchant.getLatitude(), merchant.getLongitude()
+        );
+        if (distance > VERIFICATION_RADIUS_METERS) {
+            throw new BusinessException(ReceiptError.TOO_FAR_FROM_MERCHANT);
+        }
+
         LocalDate date = LocalDate.now();
-        Matcher mDate = DATE_PATTERN.matcher(text);
+        Matcher mDate = DATE_PATTERN.matcher(flattenedText);
         if (mDate.find()) {
-            date = LocalDate.parse(mDate.group(1)
-                    .replace('.', '-')
-                    .replace('/', '-'));
+            date = LocalDate.parse(mDate.group(1).replace('.', '-').replace('/', '-'));
         }
+
         LocalTime time;
-        Matcher mTime = TIME_PATTERN.matcher(text);
+        Matcher mTime = TIME_PATTERN.matcher(flattenedText);
         if (mTime.find()) {
-            // 매칭 그룹에서 모든 공백(스페이스·탭·줄바꿈) 제거
-            String timeStr = mTime.group(1).replaceAll("\\s+", "");
-            if (timeStr.length() == 5) {  // HH:mm 형식일 경우 초 추가
-                timeStr += ":00";
+            try {
+                int hour = Integer.parseInt(mTime.group(1));
+                int minute = Integer.parseInt(mTime.group(2));
+                int second = mTime.group(3) != null ? Integer.parseInt(mTime.group(3)) : 0;
+                if (hour < 0 || hour > 23) {
+                    throw new BusinessException(ReceiptError.INVALID_HOUR);
+                }
+                if (minute < 0 || minute > 59) {
+                    throw new BusinessException(ReceiptError.INVALID_MINUTE);
+                }
+                if (second < 0 || second > 59) {
+                    throw new BusinessException(ReceiptError.INVALID_SECOND);
+                }
+                time = LocalTime.of(hour, minute, second);
+                log.info("방문 시각 추출 완료: {}", time);
+            } catch (NumberFormatException e) {
+                throw new BusinessException(ReceiptError.INVALID_TIME_FORMAT);
             }
-            time = LocalTime.parse(timeStr);
         } else {
-            throw new IllegalArgumentException("영수증에서 방문 시간을 찾을 수 없습니다.");
+            throw new BusinessException(ReceiptError.TIME_NOT_FOUND);
         }
 
-        // 5) User 검증
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
+                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
 
-        // 6) ReceiptPreview 저장
-        ReceiptPreview preview = new ReceiptPreview();
-        preview.setUser(user);
-        preview.setMerchant(merchant);
-        preview.setVisitDate(date);
-        preview.setVisitTime(time);
-        preview = previewRepo.save(preview);
+        ReceiptPreview receiptPreview = ReceiptPreview.builder()
+                .user(user)
+                .merchant(merchant)
+                .visitDate(date)
+                .visitTime(time)
+                .userLatitude(receiptVerificationRequest.latitude())
+                .userLongitude(receiptVerificationRequest.longitude())
+                .build();
 
-        // 7) DTO 반환
+        receiptPreview = previewRepo.save(receiptPreview);
+
         return ReceiptPreviewResponseDto.builder()
-                .previewId(preview.getId())
+                .previewId(receiptPreview.getId())
                 .merchantId(merchant.getId())
                 .merchantName(merchant.getName())
                 .visitDate(date)
                 .visitTime(time)
                 .address(merchant.getAddress())
-                .point(50)
                 .build();
     }
 
     public ReceiptConfirmResponseDto confirm(Long previewId, Long userId) {
         ReceiptPreview preview = previewRepo.findById(previewId)
-                .orElseThrow(() -> new EntityNotFoundException("No pending receipt: " + previewId));
+                .orElseThrow(() -> new BusinessException(ReceiptError.PREVIEW_NOT_FOUND));
         User user = userRepo.findById(userId)
-                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
+                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
 
-        if (receiptRepo.existsByMerchantAndUserAndVisitDateAndVisitTime(
-                (preview.getMerchant()), user, preview.getVisitDate(), preview.getVisitTime())) {
-            throw new IllegalStateException("Receipt already confirmed for this visit.");
+        if (receiptRepo.existsByPreview(preview)) {
+            throw new BusinessException(ReceiptError.RECEIPT_ALREADY_CONFIRMED);
         }
 
-        int previous = pointRepo.findFirstByUserOrderByCreatedAtDesc(user)
-                .map(Point::getCurrentPoint)
-                .orElse(0);
-        int changed = 50;
-        int current = previous + changed;
-
-        Point p = Point.builder()
+        Receipt receipt = Receipt.builder()
+                .preview(preview)
                 .user(user)
-                .paymentType(PaymentType.PAYMENT_VERIFICATION)
-                .changedPoint(changed)
-                .currentPoint(current)
+                .merchant(preview.getMerchant())
+                .visitDate(preview.getVisitDate())
+                .visitTime(preview.getVisitTime())
                 .build();
-        p = pointRepo.save(p);
-
-        Receipt receipt = new Receipt();
-        receipt.setPreview(preview);
-        receipt.setUser(user);
-        receipt.setMerchant(preview.getMerchant());
-        receipt.setVisitDate(preview.getVisitDate());
-        receipt.setVisitTime(preview.getVisitTime());
         receipt = receiptRepo.save(receipt);
+
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime thirtyMinutesAgo = now.minusMinutes(30);
+
+        List<Receipt> recentReceipts = receiptRepo.findByMerchantAndCreatedAtAfter(
+                preview.getMerchant(), thirtyMinutesAgo);
+
+        log.info("30분 이내 같은 가맹점 인증 완료자 수: {}", recentReceipts.size());
+
+        int finalCurrentPoint = pointRepo.findTopByUserIdOrderByCreatedAtDesc(userId)
+                .map(Point::getCurrentPoint).orElse(0);
+
+        if (recentReceipts.size() >= 2) {
+            log.info("인증 완료. 포인트 지급 대상자:");
+
+            for (Receipt recentReceipt : recentReceipts) {
+                try {
+                    boolean alreadyRewarded = hasAlreadyReceivedTeamBonus(recentReceipt.getUser().getId(),
+                            recentReceipt.getMerchant().getId(), recentReceipt.getCreatedAt());
+
+                    if (!alreadyRewarded) {
+                        pointService.rewardForAffiliateStoreProof(recentReceipt.getUser().getId());
+                        log.info("사용자 {}에게 팀 인증 포인트 지급 완료", recentReceipt.getUser().getId());
+                    } else {
+                        log.info("사용자 {}는 이미 포인트를 받았습니다", recentReceipt.getUser().getId());
+                    }
+                } catch (Exception e) {
+                    log.error("사용자 {}에게 포인트 지급 실패: {}", recentReceipt.getUser().getId(), e.getMessage());
+                }
+            }
+
+            finalCurrentPoint = pointRepo.findTopByUserIdOrderByCreatedAtDesc(userId)
+                    .map(Point::getCurrentPoint).orElse(finalCurrentPoint);
+        } else {
+            log.info("추가 인증 대기 중. 현재 인증자 수: {}/2", recentReceipts.size());
+        }
 
         return ReceiptConfirmResponseDto.builder()
                 .receiptId(receipt.getId())
@@ -159,7 +209,28 @@ public class ReceiptService {
                 .visitDate(preview.getVisitDate())
                 .visitTime(preview.getVisitTime())
                 .createdAt(receipt.getCreatedAt())
-                .currentPoint(current)
+                .currentPoint(finalCurrentPoint)
                 .build();
+    }
+
+    // 특정 시간대에 이미 팀 보너스를 받았는지 확인
+    private boolean hasAlreadyReceivedTeamBonus(Long userId, Long merchantId, LocalDateTime receiptCreatedAt) {
+        LocalDateTime checkStart = receiptCreatedAt.minusMinutes(30);
+        LocalDateTime checkEnd = receiptCreatedAt.plusMinutes(30);
+
+        return pointRepo.existsByUserIdAndPaymentTypeAndCreatedAtBetween(
+                userId, PaymentType.PAYMENT_VERIFICATION, checkStart, checkEnd);
+    }
+
+    // 거리 계산
+    private double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+        final int EARTH_RADIUS = 6371000;
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+        return EARTH_RADIUS * c;
     }
 }

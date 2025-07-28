@@ -15,5 +15,4 @@ public class ReceiptPreviewResponseDto {
     private LocalDate visitDate;
     private LocalTime visitTime;
     private String    address;
-    private Integer   point;
 }

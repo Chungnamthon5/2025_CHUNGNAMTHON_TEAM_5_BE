@@ -4,9 +4,9 @@ import com.chungnamthon.cheonon.local_merchant.domain.Merchant;
 import com.chungnamthon.cheonon.point.domain.Point;
 import com.chungnamthon.cheonon.user.domain.User;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,7 +16,10 @@ import java.time.LocalTime;
 @Table(name = "receipt")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
+@EntityListeners(AuditingEntityListener.class)
 public class Receipt {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +43,7 @@ public class Receipt {
     @Column(name = "visit_time", nullable = false)
     private LocalTime visitTime;
 
-    @Column(updatable = false)
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreatedDate
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
 }
