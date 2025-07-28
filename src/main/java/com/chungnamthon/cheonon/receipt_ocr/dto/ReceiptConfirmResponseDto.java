@@ -13,7 +13,6 @@ public class ReceiptConfirmResponseDto {
     private Long          receiptId;
     private Long          userId;
     private Long          merchantId;
-    private Long          pointId;
     private LocalDate visitDate;
     private LocalTime visitTime;
     private LocalDateTime createdAt;

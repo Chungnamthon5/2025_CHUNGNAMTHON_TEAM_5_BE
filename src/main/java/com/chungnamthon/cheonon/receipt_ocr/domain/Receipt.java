@@ -34,10 +34,6 @@ public class Receipt {
     @JoinColumn(name = "merchant_id", nullable = false)
     private Merchant merchant;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "point_id", nullable = false)
-    private Point point;
-
     @Column(name = "visit_date", nullable = false)
     private LocalDate visitDate;
 

@@ -148,7 +148,6 @@ public class ReceiptService {
         receipt.setPreview(preview);
         receipt.setUser(user);
         receipt.setMerchant(preview.getMerchant());
-        receipt.setPoint(p);
         receipt.setVisitDate(preview.getVisitDate());
         receipt.setVisitTime(preview.getVisitTime());
         receipt = receiptRepo.save(receipt);
@@ -157,7 +156,6 @@ public class ReceiptService {
                 .receiptId(receipt.getId())
                 .userId(user.getId())
                 .merchantId(preview.getMerchant().getId())
-                .pointId(p.getId())
                 .visitDate(preview.getVisitDate())
                 .visitTime(preview.getVisitTime())
                 .createdAt(receipt.getCreatedAt())
