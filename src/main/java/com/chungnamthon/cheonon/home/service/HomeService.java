@@ -31,7 +31,7 @@ public class HomeService {
                 .recentMeetings(getRecentMeetings())
                 .topAffiliates(getAffiliates())
                 .powerUsers(getPowerUsersOrThrow())
-                .currentPoint(getCurrentPointIfLoggedIn(userId)) // 🔥 추가됨
+                .currentPoint(getCurrentPointIfLoggedIn(userId))
                 .build();
     }
 
