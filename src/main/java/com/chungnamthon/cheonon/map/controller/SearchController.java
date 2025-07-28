@@ -20,7 +20,7 @@ public class SearchController {
 
     @GetMapping
     public ResponseDto<Page<SearchResultDto>> search(
-            @RequestParam String keyword,
+            @RequestParam(name = "keyword") String keyword,
             Pageable pageable
     ) {
         Page<SearchResultDto> data = searchService.searchByName(keyword, pageable);
