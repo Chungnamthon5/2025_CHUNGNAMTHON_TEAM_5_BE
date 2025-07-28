@@ -65,7 +65,7 @@ public class ExternalMerchantApiClient {
 
             JsonNode root = response.getBody();
             if (root == null || root.get("data") == null || root.get("data").get("merchants") == null) {
-                log.warn("⚠️ 응답 비정상 (page: {}, bizType: {})", pageNum, bizType);
+                log.warn(" 응답 비정상 (page: {}, bizType: {})", pageNum, bizType);
                 return Collections.emptyList();
             }
 
@@ -95,11 +95,11 @@ public class ExternalMerchantApiClient {
                         .build());
             }
 
-            log.info("✅ {}개 수집 완료 (bizType: {}, page: {})", result.size(), bizType, pageNum);
+            log.info("{}개 수집 완료 (bizType: {}, page: {})", result.size(), bizType, pageNum);
             return result;
 
         } catch (Exception e) {
-            log.error("💥 API fetch error (bizType: {}, page: {}): {}", bizType, pageNum, e.getMessage(), e);
+            log.error("API fetch error (bizType: {}, page: {}): {}", bizType, pageNum, e.getMessage(), e);
             return Collections.emptyList();
         }
     }

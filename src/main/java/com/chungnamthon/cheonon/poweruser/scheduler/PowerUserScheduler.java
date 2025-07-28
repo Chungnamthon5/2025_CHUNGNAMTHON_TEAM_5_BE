@@ -18,8 +18,8 @@ public class PowerUserScheduler {
      */
     @Scheduled(cron = "0 0 3 * * MON", zone = "Asia/Seoul")
     public void update() {
-        log.info("🕒 파워유저 스케줄 시작");
+        log.info("파워유저 스케줄 시작");
         powerUserService.updateWeeklyTopUsers();
-        log.info("✅ 파워유저 스케줄 종료");
+        log.info("파워유저 스케줄 종료");
     }
 }

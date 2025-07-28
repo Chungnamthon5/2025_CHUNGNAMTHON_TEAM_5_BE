@@ -2,6 +2,8 @@ package com.chungnamthon.cheonon.mypage.service;
 
 import com.chungnamthon.cheonon.auth.jwt.JwtUtil;
 import com.chungnamthon.cheonon.coupon.repository.CouponUserRepository;
+import com.chungnamthon.cheonon.global.exception.BusinessException;
+import com.chungnamthon.cheonon.global.exception.error.AuthenticationError;
 import com.chungnamthon.cheonon.mypage.dto.MyPageResponse;
 import com.chungnamthon.cheonon.point.repository.PointRepository;
 import com.chungnamthon.cheonon.user.domain.User;
@@ -19,12 +21,19 @@ public class MyPageService {
     private final JwtUtil jwtUtil;
 
     public MyPageResponse getMyPageInfo(String token) {
-        Long userId = jwtUtil.getUserIdFromToken(token);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 유저를 찾을 수 없습니다."));
+        Long userId;
 
-        int currentPoint = pointRepository.sumPointByUserId(userId); // 총 포인트 (ex. +2000 -300 등 계산된 결과)
-        int couponCount = couponUserRepository.countByUser_Id(userId); // 유저가 보유한 쿠폰 개수
+        try {
+            userId = jwtUtil.getUserIdFromToken(token);
+        } catch (Exception e) {
+            throw new BusinessException(AuthenticationError.INVALID_TOKEN);
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new BusinessException(AuthenticationError.USER_NOT_FOUND));
+
+        int currentPoint = pointRepository.sumPointByUserId(userId);
+        int couponCount = couponUserRepository.countByUser_Id(userId);
 
         return MyPageResponse.builder()
                 .userId(user.getId())

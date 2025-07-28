@@ -13,7 +13,6 @@ import java.util.Optional;
 public interface MerchantRepository extends JpaRepository<Merchant, Long> {
     Optional<Merchant> findByMerchantSeq(String merchantSeq);
 
-    // LocalMerchantRepository.java 수정
     @Query("SELECT m FROM Merchant m WHERE " +
             "(m.latitude IS NULL OR m.latitude = 0.0) OR " +
             "(m.longitude IS NULL OR m.longitude = 0.0)")

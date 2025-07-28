@@ -27,16 +27,16 @@ public class KakaoGeoUtil {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
-    // ✅ 주소 캐시 맵 추가 (동일 주소 재요청 방지)
+    // 주소 캐시 맵 추가 (동일 주소 재요청 방지)
     private final Map<String, double[]> geoCache = new ConcurrentHashMap<>();
 
     public Optional<double[]> getCoordinates(String address) {
         if (address == null || address.trim().isEmpty()) {
-            log.warn("❌ 주소가 비어있음");
+            log.warn(" 주소가 비어있음");
             return Optional.empty();
         }
 
-        // ✅ 캐시된 좌표가 있으면 바로 반환
+        // 캐시된 좌표가 있으면 바로 반환
         if (geoCache.containsKey(address)) {
             return Optional.of(geoCache.get(address));
         }
@@ -64,16 +64,16 @@ public class KakaoGeoUtil {
 
                 double[] coords = new double[]{lat, lon};
 
-                // ✅ 캐시에 저장
+                // 캐시에 저장
                 geoCache.put(address, coords);
 
                 return Optional.of(coords);
             } else {
-                log.warn("❌ 카카오 결과 없음: {}", address);
+                log.warn("카카오 결과 없음: {}", address);
             }
 
         } catch (Exception e) {
-            log.error("💥 카카오 주소 변환 실패: {} - {}", address, e.getMessage());
+            log.error("카카오 주소 변환 실패: {} - {}", address, e.getMessage());
         }
 
         return Optional.empty();

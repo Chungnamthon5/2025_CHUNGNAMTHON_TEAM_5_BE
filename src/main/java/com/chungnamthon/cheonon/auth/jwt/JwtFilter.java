@@ -15,7 +15,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 
 import java.io.IOException;
-import java.util.Collections;
 
 @Component
 @Slf4j
@@ -43,7 +42,6 @@ public class JwtFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
         } catch (JwtException | IllegalArgumentException e) {
-            // 인증 실패 시 SecurityContext를 비워두고 CustomEntryPoint가 처리하게 한다
             log.warn("JWT 인증 실패: {}", e.getMessage());
         }
 
